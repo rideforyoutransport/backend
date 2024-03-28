@@ -1,0 +1,19 @@
+{
+  "name": "ride4utransport",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "nodejs" :"nodemon index.js",
+    "pocketbase":"./pocketbase/pocketbase serve",
+    "dev": "concurrently --kill-others \"npm run nodejs\" \" npm run pocketbase\""
+  },
+  "author": "Sahil Yadav , Ankit Kumar",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemon": "^3.1.0",
+    "pocketbase": "^0.21.1"
+  }
+}
