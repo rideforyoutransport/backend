@@ -1,0 +1,176 @@
+
+ /**
+ * Module dependencies.
+ */
+
+
+ var app = require('../app');
+ var debug = require('debug')('ride4utransport:server');
+ var http = require('http');
+
+
+const PocketBase = require('pocketbase/cjs')
+
+ /**
+  * Get port from environment and store in Express.
+  */
+
+  
+ var server_port = normalizePort(process.env.SERVER_PORT || '3000');
+ var pb_port =  normalizePort(process.env.PB_PORT || '8090');
+ app.set('port', server_port);
+ 
+
+// start pocketbase 
+const pb = new PocketBase(pb_port);
+
+
+
+
+ 
+ /**
+  * Create HTTP server.
+  */
+ 
+ var server = http.createServer(app);
+ 
+ /**
+  * Listen on provided port, on all network interfaces.
+  */
+ 
+ server.listen(server_port);
+ server.on('error', onError);
+ server.on('listening', onListening);
+ 
+ /**
+  * Normalize a port into a number, string, or false.
+  */
+ 
+ function normalizePort(val) {
+   var port = parseInt(val, 10);
+ 
+   if (isNaN(port)) {
+     // named pipe
+     return val;
+   }
+ 
+   if (port >= 0) {
+     // port number
+     return port;
+   }
+ 
+   return false;
+ }
+ 
+ /**
+  * Event listener for HTTP server "error" event.
+  */
+ 
+ function onError(error) {
+   if (error.syscall !== 'listen') {
+     throw error;
+   }
+ 
+   var bind = typeof port === 'string'
+     ? 'Pipe ' + port
+     : 'Port ' + port;
+ 
+   // handle specific listen errors with friendly messages
+   switch (error.code) {
+     case 'EACCES':
+       console.error(bind + ' requires elevated privileges');
+       process.exit(1);
+       break;
+     case 'EADDRINUSE':
+       console.error(bind + ' is already in use');
+       process.exit(1);
+       break;
+     default:
+       throw error;
+   }
+ }
+ 
+
+ /**
+  * Event listener for HTTP server "listening" event.
+  */
+ 
+ function onListening() {
+   var addr = server.address();
+   var bind = typeof addr === 'string'
+     ? 'pipe ' + addr
+     : 'port ' + addr.port;
+ 
+   debug('Listening on ' + bind);
+   console.log('Listening on ' + bind);
+ }
+
+
+
+
+
+
+
+// app.get('/', function (req, res) {
+//   res.send('Hello World!');
+// });
+// app.listen(3000, function () {
+
+//     const admin =async ()=>{
+//         const adminData = await pb.admins.authWithPassword('rideforyoutransport@gmail.com', 'ride4u@12345');
+//         const result = await pb.collection('users').listAuthMethods();
+//         // await pb.collection('users').requestVerification('rideforyoutransport@gmail.com');
+      
+
+// // const result = await pb.collection('users').listExternalAuths(
+// //     pb.authStore.model.id
+// // );
+
+//         // const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+
+//         console.log(result);
+//         // console.log(adminData);
+//     }
+
+
+
+//     admin();
+//   console.log('Example app listening on port 3000!');
+// });
+
+
+
+
+
+
+// list and filter "example" collection records
+
+
+// const result = await pb.collection('example').getList(1, 20, {
+//     filter: 'status = true && created > "2022-08-01 10:00:00"'
+// });
+
+// // authenticate as auth collection record
+// const userData = await pb.collection('users').authWithPassword('test@example.com', '123456');
+
+// or as super-admin
+
+
+// // and much more...
+
+
+
+
+
+/// www 
+
+  
+
+
+
+ /**
+  * Get port from environment and store in Express.
+  */
+ 
+
+  
