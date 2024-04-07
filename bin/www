@@ -16,7 +16,7 @@ const PocketBase = require('pocketbase/cjs')
   */
 
   
- var server_port = normalizePort(process.env.SERVER_PORT || '3000');
+ var server_port = normalizePort(process.env.SERVER_PORT || '3003');
  var pb_port =  normalizePort(process.env.PB_PORT || '8090');
  app.set('port', server_port);
  
