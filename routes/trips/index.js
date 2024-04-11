@@ -7,52 +7,58 @@ var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
 
-let userData = {};
 
-const createOrUpdateUserData =(uData)=>{
 
-    userData.username=uData.userName;
-    userData.name=uData.name;
-    userData.email=uData.email;
-    userData.password=uData.password;
-    userData.passwordConfirm=uData.password;
-    userData.username=uData.username;
-    if(uData["oldPassword"]){
-        userData.oldPassword=uData["oldPassword"];
-    }
 
-    return userData;
+let tripData = {};
+// const data = {
+
+//     "vendor": "RELATION_RECORD_ID",
+//     "from": "JSON",
+//     "to": "JSON",
+//     "duration": 123,
+//     "date": "2022-01-01 10:00:00.123Z",
+//     "vehicle": "RELATION_RECORD_ID",
+//     "drive": "RELATION_RECORD_ID",
+//     "luggage": [
+//         "s"
+//     ],
+//     "stops": "JSON",
+//     "bma": "test",
+//     "tta": "test",
+//     "refreshments": true,
+//     "cancelationCharges": "test",
+//     "recurring": "2022-01-01 10:00:00.123Z",
+//     "promoCodes": "test"
+// };
+const createOrUpdatetripData =(tData)=>{
+
+    tripData.vendor=tData.vendor;
+    tripData.from=tData.from;
+    tripData.to=tData.to;
+    tripData.duration=tData.duration;
+    tripData.date=tData.date;
+    tripData.vehicle=tData.vehicle;
+    tripData.driver=tData.drive;
+    tripData.luggage=tData.luggage;
+    tripData.stops=tData.stops;
+    tripData.bma=tData.bma;
+    tripData.tta=tData.tta;
+    tripData.refreshments=tData.refreshments;
+    tripData.cancelationCharges=tData.cancelationCharges;
+    tripData.recurring=tData.recurring;
+    tripData.promoCodes=tData.promoCodes;
+
+    return tripData;
 }
 
-router.post('/login', async (req, res) => {
 
+router.post('/add', async (req, res) => {
+
+    let trip = createOrUpdatetripData(req.body);
     try {
-        const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
-        console.log(adminData);
-        console.log(pb.authStore.isValid);
-        console.log(pb.authStore.token);
-        console.log(pb.authStore.model.id);
-        return res.send({
-            success: true,
-            result: adminData
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            error: error
-        })
-    }
-    // const result = await pb.collection('users').listAuthMethods();
-
-})
-router.post('/register', async (req, res) => {
-
-    let user = createOrUpdateUserData(req.body);
-    try {
-        const record = await pb.collection('users').create(user);
-        await pb.collection('users').requestVerification(user.email);
+        const record = await pb.collection('trips').create(trip);
+        await pb.collection('trips').requestVerification(trip.email);
 
         return res.send({
             success: true,
@@ -66,16 +72,16 @@ router.post('/register', async (req, res) => {
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
+    // const result = await pb.collection('trips').listAuthMethods();
 
 })
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
-    let user = createOrUpdateUserData(req.body);
-    console.log({user});
+    let trip = createOrUpdatetripData(req.body);
+    console.log({trip});
     try {
-const record = await pb.collection('users').update(params.id, user);
+const record = await pb.collection('trips').update(params.id, trip);
 
         return res.send({
             success: true,
@@ -89,13 +95,13 @@ const record = await pb.collection('users').update(params.id, user);
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
+    // const result = await pb.collection('trips').listAuthMethods();
 
 })
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('users').getList(req.body.from, req.body.to); 
+        const records = await pb.collection('trips').getList(req.body.from, req.body.to); 
     return res.send({
         success: true,
         result: records
@@ -113,7 +119,7 @@ router.get('/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').getOne(params.id); 
+        const records = await pb.collection('trips').getOne(params.id); 
     return res.send({
         success: true,
         result: records
@@ -131,7 +137,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').delete(params.id); 
+        const records = await pb.collection('trips').delete(params.id); 
     return res.send({
         success: true,
         result: records
@@ -145,9 +151,6 @@ router.delete('/:id', async (req, res) => {
     }
  
 })
-
-
-
 
 
 module.exports = router;

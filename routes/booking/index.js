@@ -7,52 +7,52 @@ var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
 
-let userData = {};
+let bookingData = {};
 
-const createOrUpdateUserData =(uData)=>{
+// const data = {
+//     "vendor": "RELATION_RECORD_ID",
+//     "trip": "RELATION_RECORD_ID",
+//     "user": "RELATION_RECORD_ID",
+//     "driver": "RELATION_RECORD_ID",
+//     "amountPaid": "test",
+//     "amountLeft": "test",
+//     "totalAmount": "test",
+//     "luggageTypeOpted": "s",
+//     "totalSeatsBooked": 123,
+//     "seatMapping": "JSON",
+//     "refreshmentsOpted": true,
+//     "bookingDate": "2022-01-01 10:00:00.123Z",
+//     "promoCode": "RELATION_RECORD_ID",
+//     "cancelled": true,
+//     "reciept": "https://example.com"
+// };
 
-    userData.username=uData.userName;
-    userData.name=uData.name;
-    userData.email=uData.email;
-    userData.password=uData.password;
-    userData.passwordConfirm=uData.password;
-    userData.username=uData.username;
-    if(uData["oldPassword"]){
-        userData.oldPassword=uData["oldPassword"];
-    }
+const createOrUpdatebookingData =(bData)=>{
 
-    return userData;
+    bookingData.vendor=bData.vendor;
+    bookingData.trip=bData.trip;
+    bookingData.user=bData.user;
+    bookingData.driver=bData.driver;
+    bookingData.amountPaid=bData.amountPaid;
+    bookingData.amountLeft=bData.amountLeft;
+    bookingData.totalAmount=bData.totalAmount;
+    bookingData.luggageTypeOpted=bData.luggageTypeOpted;
+    bookingData.totalSeatsBooked=bData.totalSeatsBooked;
+    bookingData.seatMapping=bData.seatMapping;
+    bookingData.seatMapping=bData.seatMapping;
+    bookingData.process=bData.promoCode;
+    bookingData.cancelled=bData.promoCode?bData.promoCode:false;
+    bookingData.reciept=bData.reciept;
+ 
+    return bookingData;
 }
 
-router.post('/login', async (req, res) => {
 
+router.post('/add', async (req, res) => {
+
+    let bData = createOrUpdatebookingData(req.body);
     try {
-        const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
-        console.log(adminData);
-        console.log(pb.authStore.isValid);
-        console.log(pb.authStore.token);
-        console.log(pb.authStore.model.id);
-        return res.send({
-            success: true,
-            result: adminData
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            error: error
-        })
-    }
-    // const result = await pb.collection('users').listAuthMethods();
-
-})
-router.post('/register', async (req, res) => {
-
-    let user = createOrUpdateUserData(req.body);
-    try {
-        const record = await pb.collection('users').create(user);
-        await pb.collection('users').requestVerification(user.email);
+        const record = await pb.collection('booking').create(bData);
 
         return res.send({
             success: true,
@@ -66,16 +66,15 @@ router.post('/register', async (req, res) => {
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
 
 })
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
-    let user = createOrUpdateUserData(req.body);
-    console.log({user});
+    let booking = createOrUpdatebookingData(req.body);
+    console.log({booking});
     try {
-const record = await pb.collection('users').update(params.id, user);
+const record = await pb.collection('booking').update(params.id, booking);
 
         return res.send({
             success: true,
@@ -89,13 +88,12 @@ const record = await pb.collection('users').update(params.id, user);
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
 
 })
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('users').getList(req.body.from, req.body.to); 
+        const records = await pb.collection('booking').getList(req.body.from, req.body.to); 
     return res.send({
         success: true,
         result: records
@@ -113,7 +111,7 @@ router.get('/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').getOne(params.id); 
+        const records = await pb.collection('booking').getOne(params.id); 
     return res.send({
         success: true,
         result: records
@@ -131,7 +129,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').delete(params.id); 
+        const records = await pb.collection('booking').delete(params.id); 
     return res.send({
         success: true,
         result: records
@@ -145,9 +143,5 @@ router.delete('/:id', async (req, res) => {
     }
  
 })
-
-
-
-
 
 module.exports = router;
