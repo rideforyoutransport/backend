@@ -31,44 +31,64 @@ let tripData = {};
 //     "recurring": "2022-01-01 10:00:00.123Z",
 //     "promoCodes": "test"
 // };
-const createOrUpdatetripData =(tData)=>{
+const createOrUpdatetripData = (tData) => {
 
-    tripData.vendor=tData.vendor;
-    tripData.from=tData.from;
-    tripData.to=tData.to;
-    tripData.duration=tData.duration;
-    tripData.date=tData.date;
-    tripData.vehicle=tData.vehicle;
-    tripData.driver=tData.drive;
-    tripData.luggage=tData.luggage;
-    tripData.stops=tData.stops;
-    tripData.bma=tData.bma;
-    tripData.tta=tData.tta;
-    tripData.refreshments=tData.refreshments;
-    tripData.cancelationCharges=tData.cancelationCharges;
-    tripData.recurring=tData.recurring;
-    tripData.promoCodes=tData.promoCodes;
-
+    tripData.vendor = tData.vendor;
+    tripData.from = tData.from;
+    tripData.to = tData.to;
+    tripData.duration = tData.duration;
+    tripData.tripDate = tData.tripDate;
+    tripData.vehicle = tData.vehicle;
+    tripData.driver = tData.drive;
+    tripData.luggage = tData.luggage;
+    tripData.stops = tData.stops;
+    tripData.bookingMinimumAmount = tData.bookingMinimumAmount;
+    tripData.totalTripAmount = tData.totalTripAmount;
+    tripData.refreshments = tData.refreshments;
+    tripData.cancelationCharges = tData.cancelationCharges;
+    tripData.recurring = tData.recurring;
+    tripData.promoCodes = tData.promoCodes;
+    // needs to be removed after 15/04/24 demo 
+    tripData.totalSeatsLeft = tData.totalSeatsLeft;
+    tripData.totalSeats = tData.totalSeatsLeft;
     return tripData;
 }
-
-
-const filterToString = (filter) =>{
-
-    
-    finalFilter=""
-    // for(key in filter){
-    //     console.log(key, filter[key]);
-    // }
-    filter.forEach(element => {
-        console.log(element);
-        let eleFilter=element.fieldName+" "+element.operand+" '"+element.value+"'"
-        finalFilter+=eleFilter+' && '
-        // console.log(element.getKey(),element[element.gerKey()]);
-        
+let filterFromAndTo = (trips, filter) => {
+    let finalTrips = [];
+    trips.forEach(trip => {
+       let finalStops = calculateFinalStops([trip.from, ...trip.stops, trip.to]);
+        if (finalStops.includes(filter.from) && finalStops.includes(filter.to) && finalStops.indexOf(filter.from) < finalStops.indexOf(filter.to)) {
+        finalTrips.push(trip);
+        }
     });
-    finalFilter=finalFilter.slice(0,finalFilter.length-3);
-    console.log(finalFilter)
+return finalTrips;
+
+}
+
+const calculateFinalStops = (allStops)=>{
+
+    allStops.reduce((accumulator, item) => {
+        if (!accumulator.includes(item)) {
+            accumulator.push(item);
+        }
+        return accumulator;
+    }, []);
+    return allStops;
+}
+
+const filterToString = (filter) => {
+
+    finalFilter = "";
+
+    if(filter.length>0){
+        filter.forEach(element => {
+            console.log(element);
+            let eleFilter = element.fieldName + " " + element.operand + " '" + element.value + "'"
+            finalFilter += eleFilter + ' && '
+    
+        });
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3);
+    }    
     return finalFilter
 }
 
@@ -97,9 +117,9 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let trip = createOrUpdatetripData(req.body);
-    console.log({trip});
+    console.log({ trip });
     try {
-const record = await pb.collection('trips').update(params.id, trip);
+        const record = await pb.collection('trips').update(params.id, trip);
 
         return res.send({
             success: true,
@@ -119,11 +139,11 @@ const record = await pb.collection('trips').update(params.id, trip);
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('trips').getList(req.body.from, req.body.to);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -137,18 +157,29 @@ router.get('/all', async (req, res) => {
 
 router.get('/allFilter', async (req, res) => {
 
-    let filter=req.body.filter;
-    let finalFilter=filterToString(req.body.filter2)
-    finalFilter = finalFilter + " & stops.expand.name='1'"
-    console.log(finalFilter);
+    let fromToFilter = req.body.filter2;
+    let finalFilter = filterToString(req.body.filter)
     try {
-        const records = await pb.collection('trips').getFullList({ filter:finalFilter,
-            expand: 'stops'}); 
-            console.log(records);
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('trips').getFullList({
+            filter: finalFilter,
+            expand: 'stops'
+        });
+        if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
+            let finalRecords = filterFromAndTo(records, fromToFilter);
+            console.log(finalRecords);
+            return res.send({
+                success: true,
+                result: finalRecords
+            })
+           
+        }else{
+            return res.send({
+                success: true,
+                result: records
+            })
+        }
+       
+       
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -161,11 +192,11 @@ router.get('/allFilter', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').getOne(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('trips').getOne(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -173,17 +204,17 @@ router.get('/:id', async (req, res) => {
             error: error
         })
     }
- 
+
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').delete(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('trips').delete(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -191,7 +222,7 @@ router.delete('/:id', async (req, res) => {
             error: error
         })
     }
- 
+
 })
 
 
