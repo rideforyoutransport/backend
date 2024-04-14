@@ -13,6 +13,7 @@
         {
             "date": 1712828307502,
             "name": "stdout.log..2024-04-11",
+<<<<<<< Updated upstream
             "hash": "36fca1ac07bde0d0385b0d85661fbe7fc5625373ed56f24574466d1abcba0e24"
         },
         {
@@ -24,6 +25,19 @@
             "date": 1713040697805,
             "name": "stdout.log..2024-04-14",
             "hash": "3bd6ff69a174d598f8939ebdce1e429d129c5219bd180336dc134c1ea1744ea9"
+=======
+            "hash": "a498be0b194f32e2b5fcd6990d4e694a426d79e560b657a8d4793c77b09a89da"
+        },
+        {
+            "date": 1712989246184,
+            "name": "stdout.log..2024-04-13",
+            "hash": "873be89ea2e91d9f564450849f7bdeb0bf7ddc38d10a6760a13ae245056b5227"
+        },
+        {
+            "date": 1713051421295,
+            "name": "stdout.log..2024-04-14",
+            "hash": "656bf2b6e096fdf4fd2175ea0deb158ff305cfd09a9bd8caeaec5ba9731d05b2"
+>>>>>>> Stashed changes
         }
     ],
     "hashType": "sha256"
