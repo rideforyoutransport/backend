@@ -29,12 +29,11 @@ router.post('/login', async (req, res) => {
     try {
         const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
         console.log(adminData);
-        console.log(pb.authStore.isValid);
-        console.log(pb.authStore.token);
-        console.log(pb.authStore.model.id);
+        
+    
         return res.send({
             success: true,
-            result: adminData
+            result: {id:adminData.record.id,token:adminData.token}
         })
 
     } catch (error) {
@@ -56,7 +55,8 @@ router.post('/register', async (req, res) => {
 
         return res.send({
             success: true,
-            result: record
+            result: {id:adminData.record.id,token:adminData.token}
+
         })
 
     } catch (error) {
