@@ -52,7 +52,7 @@ router.post('/add', async (req, res) => {
 
     let bData = createOrUpdatebookingData(req.body);
     try {
-        const record = await pb.collection('booking').create(bData);
+        const record = await pb.collection('bookings').create(bData);
 
         return res.send({
             success: true,
@@ -71,10 +71,10 @@ router.post('/add', async (req, res) => {
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
-    let booking = createOrUpdatebookingData(req.body);
-    console.log({booking});
+    let bookings = createOrUpdatebookingData(req.body);
+    console.log({bookings});
     try {
-const record = await pb.collection('booking').update(params.id, booking);
+const record = await pb.collection('bookings').update(params.id, bookings);
 
         return res.send({
             success: true,
@@ -93,7 +93,7 @@ const record = await pb.collection('booking').update(params.id, booking);
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('booking').getList(req.body.from, req.body.to); 
+        const records = await pb.collection('bookings').getList(req.body.from, req.body.to); 
     return res.send({
         success: true,
         result: records
@@ -111,7 +111,7 @@ router.get('/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('booking').getOne(params.id); 
+        const records = await pb.collection('bookings').getOne(params.id); 
     return res.send({
         success: true,
         result: records
@@ -129,7 +129,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('booking').delete(params.id); 
+        const records = await pb.collection('bookings').delete(params.id); 
     return res.send({
         success: true,
         result: records

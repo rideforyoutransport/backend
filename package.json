@@ -12,6 +12,8 @@
   "author": "Sahil Yadav , Ankit Kumar",
   "license": "ISC",
   "dependencies": {
+    "@admin-bro/express": "^3.1.0",
+    "admin-bro": "^4.0.1",
     "concurrently": "^8.2.2",
     "cookie-parser": "^1.4.6",
     "cookies": "^0.9.1",

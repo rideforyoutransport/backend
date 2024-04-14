@@ -53,12 +53,30 @@ const createOrUpdatetripData =(tData)=>{
 }
 
 
+const filterToString = (filter) =>{
+
+    
+    finalFilter=""
+    // for(key in filter){
+    //     console.log(key, filter[key]);
+    // }
+    filter.forEach(element => {
+        console.log(element);
+        let eleFilter=element.fieldName+" "+element.operand+" '"+element.value+"'"
+        finalFilter+=eleFilter+' && '
+        // console.log(element.getKey(),element[element.gerKey()]);
+        
+    });
+    finalFilter=finalFilter.slice(0,finalFilter.length-3);
+    console.log(finalFilter)
+    return finalFilter
+}
+
 router.post('/add', async (req, res) => {
 
     let trip = createOrUpdatetripData(req.body);
     try {
         const record = await pb.collection('trips').create(trip);
-        await pb.collection('trips').requestVerification(trip.email);
 
         return res.send({
             success: true,
@@ -113,7 +131,31 @@ router.get('/all', async (req, res) => {
             error: error
         })
     }
- 
+})
+
+
+
+router.get('/allFilter', async (req, res) => {
+
+    let filter=req.body.filter;
+    let finalFilter=filterToString(req.body.filter2)
+    finalFilter = finalFilter + " & stops.expand.name='1'"
+    console.log(finalFilter);
+    try {
+        const records = await pb.collection('trips').getFullList({ filter:finalFilter,
+            expand: 'stops'}); 
+            console.log(records);
+    return res.send({
+        success: true,
+        result: records
+    })   
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
 })
 
 router.get('/:id', async (req, res) => {
