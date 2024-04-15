@@ -51,12 +51,13 @@ router.post('/register', async (req, res) => {
     let user = createOrUpdateUserData(req.body);
     
     try {
+
         await pb.collection('users').create(user);
         const adminData = await pb.collection('users').authWithPassword(user.email, user.password);
 
         return res.send({
             success: true,
-            result: {id:adminData.record.id,token:adminData.token}
+            result: {id:record.record.id,token:record.token}
 
         })
 
