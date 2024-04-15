@@ -155,7 +155,7 @@ router.get('/all', async (req, res) => {
 
 
 
-router.get('/allFilter', async (req, res) => {
+router.post('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
     let finalFilter = filterToString(req.body.filter)
