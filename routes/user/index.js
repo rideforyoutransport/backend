@@ -52,10 +52,10 @@ router.post('/register', async (req, res) => {
     try {
         const record = await pb.collection('users').create(user);
         await pb.collection('users').requestVerification(user.email);
-
+console.log(record);
         return res.send({
             success: true,
-            result: {id:adminData.record.id,token:adminData.token}
+            result: {id:record.record.id,token:record.token}
 
         })
 

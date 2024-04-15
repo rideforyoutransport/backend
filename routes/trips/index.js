@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to);
+        const records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:'vehicle'});
         return res.send({
             success: true,
             result: records
