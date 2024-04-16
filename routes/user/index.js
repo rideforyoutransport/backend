@@ -11,12 +11,11 @@ let userData = {};
 
 const createOrUpdateUserData =(uData)=>{
 
-    userData.username=uData.userName;
     userData.name=uData.name;
     userData.email=uData.email;
     userData.password=uData.password;
     userData.passwordConfirm=uData.password;
-    userData.username=uData.username;
+    userData.phoneNumber = uData.phoneNumber;
     if(uData["oldPassword"]){
         userData.oldPassword=uData["oldPassword"];
     }
@@ -52,9 +51,12 @@ router.post('/register', async (req, res) => {
     try {
         const record = await pb.collection('users').create(user);
         await pb.collection('users').requestVerification(user.email);
+        const adminData = await pb.collection('users').authWithPassword(req.body.email, req.body.password);
+
+        console.log(record);
         return res.send({
             success: true,
-            result: {id:record.record.id,token:record.token}
+            result: {id:adminData.record.id,token:adminData.token}
 
         })
 
