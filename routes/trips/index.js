@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to);
+        const records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:'vehicle,from,to,stops'});
         return res.send({
             success: true,
             result: records
@@ -162,7 +162,7 @@ router.get('/allFilter', async (req, res) => {
     try {
         const records = await pb.collection('trips').getFullList({
             filter: finalFilter,
-            expand: 'stops'
+            expand: 'stops,from,to,vehicle'
         });
         if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
             let finalRecords = filterFromAndTo(records, fromToFilter);
