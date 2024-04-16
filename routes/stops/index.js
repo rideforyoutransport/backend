@@ -9,40 +9,16 @@ const pb = new PocketBase(pb_port);
 
 let stopData = {};
 
+// example update data
 // const data = {
-//     "vendor": "RELATION_RECORD_ID",
-//     "trip": "RELATION_RECORD_ID",
-//     "user": "RELATION_RECORD_ID",
-//     "driver": "RELATION_RECORD_ID",
-//     "amountPaid": "test",
-//     "amountLeft": "test",
-//     "totalAmount": "test",
-//     "luggageTypeOpted": "s",
-//     "totalSeatsBooked": 123,
-//     "seatMapping": "JSON",
-//     "refreshmentsOpted": true,
-//     "stopDate": "2022-01-01 10:00:00.123Z",
-//     "promoCode": "RELATION_RECORD_ID",
-//     "cancelled": true,
-//     "reciept": "https://example.com"
+//     "name": "test",
+//     "geoLocation": "JSON"
 // };
 
 const createOrUpdatestopData =(bData)=>{
 
-    stopData.vendor=bData.vendor;
-    stopData.trip=bData.trip;
-    stopData.user=bData.user;
-    stopData.driver=bData.driver;
-    stopData.amountPaid=bData.amountPaid;
-    stopData.amountLeft=bData.amountLeft;
-    stopData.totalAmount=bData.totalAmount;
-    stopData.luggageTypeOpted=bData.luggageTypeOpted;
-    stopData.totalSeatsBooked=bData.totalSeatsBooked;
-    stopData.seatMapping=bData.seatMapping;
-    stopData.seatMapping=bData.seatMapping;
-    stopData.process=bData.promoCode;
-    stopData.cancelled=bData.promoCode?bData.promoCode:false;
-    stopData.reciept=bData.reciept;
+    stopData.name=bData.name;
+    stopData.geoLocation=bData.geoLocation;
  
     return stopData;
 }

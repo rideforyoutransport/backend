@@ -7,74 +7,42 @@ var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
 
-let userData = {};
+let vehicleData = {};
 
-const createOrUpdateUserData =(uData)=>{
+const data = {
+    "name": "test",
+    "number": 123,
+    "totalSeats": 123,
+    "seatingMap": "JSON",
+    "carType": "a",
+    "totalTrips": 123,
+    "image": "https://example.com",
+    "vendor": [
+        "RELATION_RECORD_ID"
+    ]
+};
 
-    userData.username=uData.userName;
-    userData.name=uData.name;
-    userData.email=uData.email;
-    userData.password=uData.password;
-    userData.passwordConfirm=uData.password;
-    userData.username=uData.username;
-    if(uData["oldPassword"]){
-        userData.oldPassword=uData["oldPassword"];
-    }
 
-    return userData;
+const createOrUpdatevehicleData =(vData)=>{
+
+    vehicleData.name=vData.name;
+    vehicleData.number=vData.number;
+    vehicleData.totalSeats=vData.totalSeats;
+    vehicleData.seatingMap=vData.seatingMap;
+    vehicleData.carType=vData.carType;
+    vehicleData.totalTrips=vData.totalTrips;
+    vehicleData.image=vData.image;
+    vehicleData.vendor=vData.vendor;
+ 
+    return vehicleData;
 }
 
-router.post('/login', async (req, res) => {
 
+router.post('/add', async (req, res) => {
+
+    let vData = createOrUpdatevehicleData(req.body);
     try {
-        const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
-        console.log(adminData);
-        
-    
-        return res.send({
-            success: true,
-            result: {id:adminData.record.id,token:adminData.token}
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            error: error
-        })
-    }
-    // const result = await pb.collection('users').listAuthMethods();
-
-})
-router.post('/register', async (req, res) => {
-
-    let user = createOrUpdateUserData(req.body);
-    try {
-        const record = await pb.collection('users').create(user);
-        await pb.collection('users').requestVerification(user.email);
-        return res.send({
-            success: true,
-            result: {id:record.record.id,token:record.token}
-
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            error: error
-        })
-    }
-    // const result = await pb.collection('users').listAuthMethods();
-
-})
-router.patch('/:id', async (req, res) => {
-
-    const params = Object.assign({}, req.params);
-    let user = createOrUpdateUserData(req.body);
-    console.log({user});
-    try {
-const record = await pb.collection('users').update(params.id, user);
+        const record = await pb.collection('vehicle').create(vData);
 
         return res.send({
             success: true,
@@ -88,13 +56,34 @@ const record = await pb.collection('users').update(params.id, user);
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
+
+})
+router.patch('/:id', async (req, res) => {
+
+    const params = Object.assign({}, req.params);
+    let vehicle = createOrUpdatevehicleData(req.body);
+    console.log({vehicle});
+    try {
+const record = await pb.collection('vehicle').update(params.id, vehicle);
+
+        return res.send({
+            success: true,
+            result: record
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
 
 })
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('users').getList(req.body.from, req.body.to); 
+        const records = await pb.collection('vehicle').getFullList(); 
     return res.send({
         success: true,
         result: records
@@ -112,7 +101,7 @@ router.get('/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').getOne(params.id); 
+        const records = await pb.collection('vehicle').getOne(params.id); 
     return res.send({
         success: true,
         result: records
@@ -130,7 +119,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').delete(params.id); 
+        const records = await pb.collection('vehicle').delete(params.id); 
     return res.send({
         success: true,
         result: records
@@ -144,9 +133,5 @@ router.delete('/:id', async (req, res) => {
     }
  
 })
-
-
-
-
 
 module.exports = router;

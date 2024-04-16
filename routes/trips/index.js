@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:'vehicle'});
+        const records = await pb.collection('trips').getList(req.body.from, req.body.to);
         return res.send({
             success: true,
             result: records
@@ -155,7 +155,7 @@ router.get('/all', async (req, res) => {
 
 
 
-router.post('/allFilter', async (req, res) => {
+router.get('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
     let finalFilter = filterToString(req.body.filter)
