@@ -7,6 +7,8 @@ router.use('/vendor', require('./vendor'));
 router.use('/booking', require('./booking'));
 router.use('/trips', require('./trips'));
 router.use('/stops', require('./stops'));
+router.use('/vehicle', require('./vehicle'));
+
 
 
 
