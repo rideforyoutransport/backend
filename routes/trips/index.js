@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:'vehicle,from,to,stops'});
+        const records = await pb.collection('trips').getFullList({expand:'vehicle,from,to,stops'});
         return res.send({
             success: true,
             result: records
@@ -192,7 +192,7 @@ router.post('/allFilter', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').getOne(params.id);
+        const records = await pb.collection('trips').getOne(params.id, {expand: 'stops,from,to,vehicle'});
         return res.send({
             success: true,
             result: records
