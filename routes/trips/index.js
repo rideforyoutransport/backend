@@ -159,14 +159,22 @@ router.get('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
     let finalFilter = filterToString(req.body.filter)
+    let expandKeys = req.body.expandKeys;
+    let expandKeyNames =[];
+    Object.keys(expandKeys).forEach(key =>{
+        expandKeyNames.push(key);
+    })
+
     try {
         const records = await pb.collection('trips').getFullList({
             filter: finalFilter,
-            expand: 'stops,from,to,vehicle'
+            // expand: 'stops,from,to,vehicle'
+            expand:expandKeyNames.toString()
         });
         if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
             let finalRecords = filterFromAndTo(records, fromToFilter);
-            console.log(finalRecords);
+            // console.log("these are final records",finalRecords);
+            finalRecords=  utils.cleanExpandData(finalRecords,expandKeys);
             return res.send({
                 success: true,
                 result: finalRecords
