@@ -39,7 +39,7 @@ const createOrUpdatetripData = (tData) => {
     tripData.duration = tData.duration;
     tripData.tripDate = tData.tripDate;
     tripData.vehicle = tData.vehicle;
-    tripData.driver = tData.drive;
+    tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
     tripData.stops = tData.stops;
     tripData.bookingMinimumAmount = tData.bookingMinimumAmount;

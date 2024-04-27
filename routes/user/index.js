@@ -42,9 +42,43 @@ router.post('/login', async (req, res) => {
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
 
 })
+// verify email via the auth token , not 6digit code 
+router.post('/verify', async (req, res) => {
+    try {
+        await pb.collection('users').requestVerification(req.body.email);
+        return res.send({
+            success: true,
+            result: "Please Open your email and Click on verify"
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+})
+// verify email via the auth token , not 6digit code 
+router.post('/resetPassword', async (req, res) => {
+    try {
+        await pb.collection('users').requestPasswordReset(req.body.email);
+        return res.send({
+            success: true,
+            result: "Please Open your email and Click on verify"
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+})
+
 router.post('/register', async (req, res) => {
 
     let user = createOrUpdateUserData(req.body);
