@@ -38,6 +38,7 @@ const createOrUpdatetripData = (tData) => {
     tripData.to = tData.to;
     tripData.duration = tData.duration;
     tripData.tripDate = tData.tripDate;
+    tripData.tripDescription = tData.tripDescription;
     tripData.vehicle = tData.vehicle;
     tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
