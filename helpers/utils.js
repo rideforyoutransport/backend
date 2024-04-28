@@ -1,6 +1,9 @@
 
-const cleanExpandData = (data, keys) => {
-
+const cleanExpandData = (data, keys,paginatedData) => {
+    console.log(data);
+    if(paginatedData){
+        data=data.items;
+    }
     data.forEach(element => {
         let expandObject = element.expand
         delete element.expand;
