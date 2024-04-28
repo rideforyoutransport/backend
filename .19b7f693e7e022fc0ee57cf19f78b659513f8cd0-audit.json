@@ -6,21 +6,14 @@
     "auditLog": ".19b7f693e7e022fc0ee57cf19f78b659513f8cd0-audit.json",
     "files": [
         {
-<<<<<<< HEAD
-            "date": 1714034221780,
-            "name": "stdout.log..2024-04-25",
-            "hash": "671241f319ad170452307258d35b2fe0e213efe82fa16fae74fa50e6514efb13"
-=======
-<<<<<<< Updated upstream
-            "date": 1714214981849,
-            "name": "stdout.log..2024-04-27",
-            "hash": "e507e96af1164f154ffa5d11ac4be792d8554e796656ea43f96c08f00aa85af2"
-=======
             "date": 1714212448074,
             "name": "stdout.log..2024-04-27",
             "hash": "d3d02a6426fcad0c79ed32e4344bf5c9d34ffcd283254be5148f2dc29548ab59"
->>>>>>> Stashed changes
->>>>>>> 7b5a5b1 (added email verification for auth collections alongwith password reset)
+        },
+        {
+            "date": 1714304638738,
+            "name": "stdout.log..2024-04-28",
+            "hash": "e7d4c2a5008c70f65d08073236f72dd78ad9b0ad3ca366f2014fe46da39c1b8d"
         }
     ],
     "hashType": "sha256"

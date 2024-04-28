@@ -139,7 +139,13 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:'vehicle,from,to,stops'});
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:expandKeyNames.toString()});
+        records =  utils.cleanExpandData(records,expandKeys,true);
         return res.send({
             success: true,
             result: records
@@ -168,13 +174,12 @@ router.post('/allFilter', async (req, res) => {
     try {
         const records = await pb.collection('trips').getFullList({
             filter: finalFilter,
-            // expand: 'stops,from,to,vehicle'
             expand:expandKeyNames.toString()
         });
+        console.log(records)
         if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
             let finalRecords = filterFromAndTo(records, fromToFilter);
-            // console.log("these are final records",finalRecords);
-            finalRecords=  utils.cleanExpandData(finalRecords,expandKeys);
+            finalRecords=  utils.cleanExpandData(finalRecords,expandKeys,false);
             return res.send({
                 success: true,
                 result: finalRecords
@@ -197,13 +202,23 @@ router.post('/allFilter', async (req, res) => {
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.post('/:id', async (req, res) => {
     try {
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+    
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').getOne(params.id);
+        let records = await pb.collection('trips').getOne(params.id, {expand:expandKeyNames.toString()});
+        let newRecords=[];
+        newRecords.push(records);
+        console.log(newRecords);
+        newRecords=  utils.cleanExpandData(newRecords,expandKeys,false);
         return res.send({
             success: true,
-            result: records
+            result: newRecords
         })
     } catch (error) {
         logger.error(error);
