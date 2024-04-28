@@ -41,9 +41,44 @@ router.post('/login', async (req, res) => {
             error: error
         })
     }
-    // const result = await pb.collection('driver').listAuthMethods();
 
 })
+
+// verify email via the auth token , not 6digit code 
+router.post('/verify', async (req, res) => {
+    try {
+        await pb.collection('driver').requestVerification(req.body.email);
+        return res.send({
+            success: true,
+            result: "Please Open your email and Click on verify"
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+})
+// Reset password will work from chrome/ application URL not from the Application
+router.post('/resetPassword', async (req, res) => {
+    try {
+        await pb.collection('driver').requestPasswordReset(req.body.email);
+        return res.send({
+            success: true,
+            result: "Please Open your email and Click on verify"
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+})
+
 
 router.patch('/:id', async (req, res) => {
 
