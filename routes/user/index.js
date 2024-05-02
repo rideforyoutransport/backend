@@ -61,7 +61,7 @@ router.post('/verify', async (req, res) => {
         })
     }
 })
-// verify email via the auth token , not 6digit code 
+// Reset password will work from chrome/ application URL not from the Application
 router.post('/resetPassword', async (req, res) => {
     try {
         await pb.collection('users').requestPasswordReset(req.body.email);
