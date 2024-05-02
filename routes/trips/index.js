@@ -90,7 +90,9 @@ const filterToString = (filter) => {
         });
         finalFilter = finalFilter.slice(0, finalFilter.length - 3);
     }    
+    console.log("finalFilter",finalFilter);
     return finalFilter
+   
 }
 
 router.post('/add', async (req, res) => {
@@ -138,7 +140,7 @@ router.patch('/:id', async (req, res) => {
 
 })
 
-router.get('/all', async (req, res) => {
+router.post('/all', async (req, res) => {
     try {
         let expandKeys = req.body.expandKeys;
         let expandKeyNames =[];

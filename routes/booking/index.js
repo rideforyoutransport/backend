@@ -40,10 +40,12 @@ const createOrUpdatebookingData =(bData)=>{
     bookingData.totalSeatsBooked=bData.totalSeatsBooked;
     bookingData.seatMapping=bData.seatMapping;
     bookingData.seatMapping=bData.seatMapping;
-    bookingData.process=bData.promoCode;
-    bookingData.cancelled=bData.promoCode?bData.promoCode:false;
+    bookingData.status=bData.status;
+    bookingData.promoCode=bData.promoCode?bData.promoCode:false;
     bookingData.reciept=bData.reciept;
- 
+    bookingData.tipPaid=bData.tipPaid?bData.tipPaid:false;
+    bookingData.tipAmount=bdata.tipPaid?bdata.tipAmount:0;
+    
     return bookingData;
 }
 
@@ -91,9 +93,32 @@ const record = await pb.collection('bookings').update(params.id, bookings);
 
 })
 
-router.get('/all', async (req, res) => {
+// "type":0-> prev 
+//        1-> upcoming 
+
+// filter with now time 
+
+router.post('/all', async (req, res) => {
     try {
-        const records = await pb.collection('bookings').getList(req.body.from, req.body.to); 
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+        let typeFilter = '';
+
+    if(req.body.type==0){
+        typeFilter='bookingDate < @now'
+    }else{
+        typeFilter= 'bookingDate > @now'
+    }
+
+        // console.log(new Date().format("Y-m-d H:i:s.uZ"));
+    let records = await pb.collection('bookings').getList(req.body.from, req.body.to,{expand:expandKeyNames.toString(),filter:
+        typeFilter
+    }); 
+    records =  utils.cleanExpandData(records,expandKeys,true);
+
     return res.send({
         success: true,
         result: records
@@ -108,10 +133,19 @@ router.get('/all', async (req, res) => {
  
 })
 
-router.get('/:id', async (req, res) => {
+router.post('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('bookings').getOne(params.id); 
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+
+        let records = [];
+        records.push(await pb.collection('bookings').getOne(params.id, {expand:expandKeyNames.toString()})); 
+        records = utils.cleanExpandData(records, expandKeyNames,false);
+
     return res.send({
         success: true,
         result: records
