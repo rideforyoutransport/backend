@@ -20,9 +20,23 @@ router.get('/validate', async (req, res) => {
 
     
   })
-  
+// Reset password will work from chrome/ application URL not from the Application
+router.post('/resetPassword', async (req, res) => {
+    try {
+        await pb.collection('admin').requestPasswordReset(req.body.email);
+        return res.send({
+            success: true,
+            result: "Please Open your email and Click on verify"
+        })
 
-
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+})
 
 
 console.log('Example app listening on port 3000!');

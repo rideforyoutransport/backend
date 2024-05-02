@@ -7,32 +7,31 @@ var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
 
-let userData = {};
+let driverData = {};
 
-const createOrUpdateUserData =(uData)=>{
+const createOrUpdateDriverData = (uData) => {
 
-    userData.name=uData.name;
-    userData.email=uData.email;
-    userData.password=uData.password;
-    userData.passwordConfirm=uData.password;
-    userData.phoneNumber = uData.phoneNumber;
-    if(uData["oldPassword"]){
-        userData.oldPassword=uData["oldPassword"];
+    driverData.name = uData.name;
+    driverData.email = uData.email;
+    driverData.password = uData.password;
+    driverData.passwordConfirm = uData.password;
+    driverData.phoneNumber = uData.phoneNumber;
+    if (uData["oldPassword"]) {
+        driverData.oldPassword = uData["oldPassword"];
     }
 
-    return userData;
+    return driverData;
 }
 
 router.post('/login', async (req, res) => {
 
     try {
-        const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
+        const adminData = await pb.collection('driver').authWithPassword(req.body.email, req.body.password);
         console.log(adminData);
-        
-    
+
         return res.send({
             success: true,
-            result: {id:adminData.record.id,token:adminData.token}
+            result: { id: adminData.record.id, token: adminData.token }
         })
 
     } catch (error) {
@@ -44,10 +43,11 @@ router.post('/login', async (req, res) => {
     }
 
 })
+
 // verify email via the auth token , not 6digit code 
 router.post('/verify', async (req, res) => {
     try {
-        await pb.collection('users').requestVerification(req.body.email);
+        await pb.collection('driver').requestVerification(req.body.email);
         return res.send({
             success: true,
             result: "Please Open your email and Click on verify"
@@ -64,7 +64,7 @@ router.post('/verify', async (req, res) => {
 // Reset password will work from chrome/ application URL not from the Application
 router.post('/resetPassword', async (req, res) => {
     try {
-        await pb.collection('users').requestPasswordReset(req.body.email);
+        await pb.collection('driver').requestPasswordReset(req.body.email);
         return res.send({
             success: true,
             result: "Please Open your email and Click on verify"
@@ -79,38 +79,14 @@ router.post('/resetPassword', async (req, res) => {
     }
 })
 
-router.post('/register', async (req, res) => {
 
-    let user = createOrUpdateUserData(req.body);
-    try {
-        const record = await pb.collection('users').create(user);
-        await pb.collection('users').requestVerification(user.email);
-        const adminData = await pb.collection('users').authWithPassword(req.body.email, req.body.password);
-
-        console.log(record);
-        return res.send({
-            success: true,
-            result: {id:adminData.record.id,token:adminData.token}
-
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            error: error
-        })
-    }
-    // const result = await pb.collection('users').listAuthMethods();
-
-})
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
-    let user = createOrUpdateUserData(req.body);
-    console.log({user});
+    let driver = createOrUpdateDriverData(req.body);
+    console.log({ driver });
     try {
-const record = await pb.collection('users').update(params.id, user);
+        const record = await pb.collection('driver').update(params.id, driver);
 
         return res.send({
             success: true,
@@ -124,17 +100,17 @@ const record = await pb.collection('users').update(params.id, user);
             error: error
         })
     }
-    // const result = await pb.collection('users').listAuthMethods();
+    // const result = await pb.collection('driver').listAuthMethods();
 
 })
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('users').getList(req.body.from, req.body.to); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('driver').getList(req.body.from, req.body.to);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -142,17 +118,17 @@ router.get('/all', async (req, res) => {
             error: error
         })
     }
- 
+
 })
 
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').getOne(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('driver').getOne(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -160,17 +136,17 @@ router.get('/:id', async (req, res) => {
             error: error
         })
     }
- 
+
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').delete(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('driver').delete(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -178,11 +154,7 @@ router.delete('/:id', async (req, res) => {
             error: error
         })
     }
- 
+
 })
-
-
-
-
 
 module.exports = router;

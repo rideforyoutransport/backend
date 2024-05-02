@@ -38,8 +38,9 @@ const createOrUpdatetripData = (tData) => {
     tripData.to = tData.to;
     tripData.duration = tData.duration;
     tripData.tripDate = tData.tripDate;
+    tripData.tripDescription = tData.tripDescription;
     tripData.vehicle = tData.vehicle;
-    tripData.driver = tData.drive;
+    tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
     tripData.stops = tData.stops;
     tripData.bookingMinimumAmount = tData.bookingMinimumAmount;
@@ -89,7 +90,9 @@ const filterToString = (filter) => {
         });
         finalFilter = finalFilter.slice(0, finalFilter.length - 3);
     }    
+    console.log("finalFilter",finalFilter);
     return finalFilter
+   
 }
 
 router.post('/add', async (req, res) => {
@@ -137,9 +140,15 @@ router.patch('/:id', async (req, res) => {
 
 })
 
-router.get('/all', async (req, res) => {
+router.post('/all', async (req, res) => {
     try {
-        const records = await pb.collection('trips').getList(req.body.from, req.body.to);
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:expandKeyNames.toString()});
+        records =  utils.cleanExpandData(records,expandKeys,true);
         return res.send({
             success: true,
             result: records
@@ -155,18 +164,25 @@ router.get('/all', async (req, res) => {
 
 
 
-router.get('/allFilter', async (req, res) => {
+router.post('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
     let finalFilter = filterToString(req.body.filter)
+    let expandKeys = req.body.expandKeys;
+    let expandKeyNames =[];
+    Object.keys(expandKeys).forEach(key =>{
+        expandKeyNames.push(key);
+    })
+
     try {
         const records = await pb.collection('trips').getFullList({
             filter: finalFilter,
-            expand: 'stops'
+            expand:expandKeyNames.toString()
         });
+        console.log(records)
         if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
             let finalRecords = filterFromAndTo(records, fromToFilter);
-            console.log(finalRecords);
+            finalRecords=  utils.cleanExpandData(finalRecords,expandKeys,false);
             return res.send({
                 success: true,
                 result: finalRecords
@@ -189,13 +205,23 @@ router.get('/allFilter', async (req, res) => {
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.post('/:id', async (req, res) => {
     try {
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames =[];
+        Object.keys(expandKeys).forEach(key =>{
+            expandKeyNames.push(key);
+        })
+    
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').getOne(params.id);
+        let records = await pb.collection('trips').getOne(params.id, {expand:expandKeyNames.toString()});
+        let newRecords=[];
+        newRecords.push(records);
+        console.log(newRecords);
+        newRecords=  utils.cleanExpandData(newRecords,expandKeys,false);
         return res.send({
             success: true,
-            result: records
+            result: newRecords
         })
     } catch (error) {
         logger.error(error);
