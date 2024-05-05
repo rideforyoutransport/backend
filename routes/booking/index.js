@@ -19,13 +19,18 @@ let bookingData = {};
 //     "totalAmount": "test",
 //     "luggageTypeOpted": "s",
 //     "totalSeatsBooked": 123,
-//     "seatMapping": "JSON",
+//     "otherUsers": "JSON",
 //     "refreshmentsOpted": true,
 //     "bookingDate": "2022-01-01 10:00:00.123Z",
 //     "promoCode": "RELATION_RECORD_ID",
-//     "cancelled": true,
-//     "reciept": "https://example.com"
+//     "reciept": "https://example.com",
+//     "tipAmount": 123,
+//     "tipPaid": true,
+//     "status": "0",
+//     "from": "RELATION_RECORD_ID",
+//     "to": "RELATION_RECORD_ID"
 // };
+
 
 const createOrUpdatebookingData =(bData)=>{
 
@@ -35,26 +40,45 @@ const createOrUpdatebookingData =(bData)=>{
     bookingData.driver=bData.driver;
     bookingData.amountPaid=bData.amountPaid;
     bookingData.amountLeft=bData.amountLeft;
+    bookingData.bookingDate=bData.bookingDate;
     bookingData.totalAmount=bData.totalAmount;
     bookingData.luggageTypeOpted=bData.luggageTypeOpted;
     bookingData.totalSeatsBooked=bData.totalSeatsBooked;
-    bookingData.seatMapping=bData.seatMapping;
-    bookingData.seatMapping=bData.seatMapping;
-    bookingData.status=bData.status;
+    bookingData.otherUsers=bData.otherUsers;
+    bookingData.status=bData.status? bData.status:0;
     bookingData.promoCode=bData.promoCode?bData.promoCode:false;
     bookingData.reciept=bData.reciept;
     bookingData.tipPaid=bData.tipPaid?bData.tipPaid:false;
-    bookingData.tipAmount=bdata.tipPaid?bdata.tipAmount:0;
+    bookingData.tipAmount=bData.tipPaid?bdata.tipAmount:0;
+    bookingData.from=bData.from;
+    bookingData.to=bData.to;
     
     return bookingData;
 }
 
 
+const getDataFromTrip =async (data)=>{
+    // console.log(data.trip);
+
+    let record = await pb.collection('trips').getOne(data.trip);
+    // console.log(record);
+    bookingData.vendor=record.vendor;
+    bookingData.driver=record.driver;
+    bookingData.amountPaid=record.bookingMinimumAmount>0?record.bookingMinimumAmount:25;
+    bookingData.bookingDate=record.tripDate;
+    bookingData.amountLeft=record.totalTripAmount - bookingData.amountPaid;
+    bookingData.totalAmount=record.totalTripAmount;
+    return data;
+}
+
 router.post('/add', async (req, res) => {
 
-    let bData = createOrUpdatebookingData(req.body);
+    let bData = await createOrUpdatebookingData(req.body);
     try {
-        const record = await pb.collection('bookings').create(bData);
+
+       let  data= await getDataFromTrip(bData);
+       console.log(data);
+        const record = await pb.collection('bookings').create(data);
 
         return res.send({
             success: true,
@@ -70,6 +94,8 @@ router.post('/add', async (req, res) => {
     }
 
 })
+
+
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);

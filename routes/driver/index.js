@@ -9,15 +9,22 @@ const pb = new PocketBase(pb_port);
 
 let driverData = {};
 
-const createOrUpdateDriverData = (uData) => {
 
-    driverData.name = uData.name;
-    driverData.email = uData.email;
-    driverData.password = uData.password;
-    driverData.passwordConfirm = uData.password;
-    driverData.phoneNumber = uData.phoneNumber;
-    if (uData["oldPassword"]) {
-        driverData.oldPassword = uData["oldPassword"];
+const createOrUpdateDriverData = (dData) => {
+
+    driverData.name = dData.name;
+    driverData.email = dData.email;
+    driverData.emailVisibility = dData.emailVisibility;
+    driverData.rating = dData.rating;
+    driverData.totalTrips =  dData.totalTrips;
+    driverData.vendorId= dData.vendorId;
+    driverData.number=dData.number;
+    driverData.username=dData.username;
+    driverData.password = dData.password;
+    driverData.passwordConfirm = dData.password;
+    driverData.phoneNumber = dData.phoneNumber;
+    if (dData["oldPassword"]) {
+        driverData.oldPassword = dData["oldPassword"];
     }
 
     return driverData;
@@ -104,9 +111,10 @@ router.patch('/:id', async (req, res) => {
 
 })
 
-router.get('/all', async (req, res) => {
+router.post('/all', async (req, res) => {
     try {
         const records = await pb.collection('driver').getList(req.body.from, req.body.to);
+
         return res.send({
             success: true,
             result: records
@@ -120,6 +128,28 @@ router.get('/all', async (req, res) => {
     }
 
 })
+
+
+router.post('/allBookings', async (req, res) => {
+    try {
+        const records = await pb.collection('bookings').getList(req.body.from, req.body.to,{fields:'id'});
+
+        console.log(pb.authStore);
+
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            error: error
+        })
+    }
+
+})
+
 
 router.get('/:id', async (req, res) => {
     try {
@@ -158,3 +188,6 @@ router.delete('/:id', async (req, res) => {
 })
 
 module.exports = router;
+
+
+

@@ -52,6 +52,12 @@ const createOrUpdatetripData = (tData) => {
     // needs to be removed after 15/04/24 demo 
     tripData.totalSeatsLeft = tData.totalSeatsLeft;
     tripData.totalSeats = tData.totalSeatsLeft;
+
+    tripData.cancelationCharges = tData.cancelationCharges;
+    tripData.actualStartTime = tData.actualStartTime;
+    tripData.actualEndTime = tData.actualEndTime;
+    tripData.requestedTrip = tData.requestedTrip;
+    tripData.requestingUser=tData.requestingUser;
     return tripData;
 }
 let filterFromAndTo = (trips, filter) => {
