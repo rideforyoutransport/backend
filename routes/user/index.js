@@ -50,7 +50,7 @@ router.post('/verify', async (req, res) => {
         await pb.collection('users').requestVerification(req.body.email);
         return res.send({
             success: true,
-            result: "Please Open your email and Click on verify"
+            message: "Please Open your email and Click on verify"
         })
 
     } catch (error) {
@@ -67,7 +67,7 @@ router.post('/resetPassword', async (req, res) => {
         await pb.collection('users').requestPasswordReset(req.body.email);
         return res.send({
             success: true,
-            result: "Please Open your email and Click on verify"
+            message: "Please Open your email and Click on verify"
         })
 
     } catch (error) {
@@ -169,7 +169,7 @@ router.delete('/:id', async (req, res) => {
         const records = await pb.collection('users').delete(params.id);
         return res.send({
             success: true,
-            result: records
+            message: "Account Deleted"
         })
     } catch (error) {
         logger.error(error);
