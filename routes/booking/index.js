@@ -59,13 +59,10 @@ const createOrUpdatebookingData = (bData) => {
 
 
 const getDataFromTrip = async (data) => {
-    // console.log(data.trip);
 
     let record = await pb.collection('trips').getOne(data.trip);
-    // console.log(record);
     bookingData.vendor = record.vendor;
     bookingData.driver = record.driver;
-    bookingData.vehicle = record.vehicle ? record.vehicle : null;
     bookingData.amountPaid = record.bookingMinimumAmount > 0 ? record.bookingMinimumAmount : 25;
     bookingData.bookingDate = record.tripDate;
     bookingData.amountLeft = record.totalTripAmount - bookingData.amountPaid;
@@ -79,7 +76,6 @@ router.post('/add', async (req, res) => {
     try {
 
         let data = await getDataFromTrip(bData);
-        console.log(data);
         const record = await pb.collection('bookings').create(data);
 
         return res.send({
@@ -102,7 +98,6 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let bookings = createOrUpdatebookingData(req.body);
-    console.log({ bookings });
     try {
         const record = await pb.collection('bookings').update(params.id, bookings);
 
@@ -136,12 +131,11 @@ router.post('/all', async (req, res) => {
         let typeFilter = '';
 
         if (req.body.type == 0) {
-            typeFilter = 'bookingDate < @now'
-        } else {
-            typeFilter = 'bookingDate > @now'
+            typeFilter = "bookingDate < @now"
+        } else if (req.body.type == 1) {
+            typeFilter = "bookingDate > @now"
         }
-
-        // console.log(new Date().format("Y-m-d H:i:s.uZ"));
+        console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
                 typeFilter

@@ -3,8 +3,7 @@ const express = require('express');
 const path = require('path');
 const logger = require('morgan');
 var cors = require('cors');
-const AdminBro = require('admin-bro')
-const AdminBroExpress = require('@admin-bro/express')
+
 
 require('dotenv').config();
 const routes = require('./routes');
@@ -24,15 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'category_images')));
 app.use('/api', routes);
-const adminBro = new AdminBro({
-  databases: [],
-  rootPath: '/adminPanel',
-})
 
-///for admin panel 
-const router = AdminBroExpress.buildRouter(adminBro)
-app.use(adminBro.options.rootPath, router)
-app.listen(3000, () => console.log('AdminBro is under localhost:3000/adminPanel'))
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
