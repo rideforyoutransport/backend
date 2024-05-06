@@ -15,11 +15,11 @@ let stopData = {};
 //     "geoLocation": "JSON"
 // };
 
-const createOrUpdatestopData =(bData)=>{
+const createOrUpdatestopData = (bData) => {
 
-    stopData.name=bData.name;
-    stopData.geoLocation=bData.geoLocation;
- 
+    stopData.name = bData.name;
+    stopData.geoLocation = bData.geoLocation;
+
     return stopData;
 }
 
@@ -39,7 +39,7 @@ router.post('/add', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -48,9 +48,9 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let stops = createOrUpdatestopData(req.body);
-    console.log({stops});
+    console.log({ stops });
     try {
-const record = await pb.collection('stops').update(params.id, stops);
+        const record = await pb.collection('stops').update(params.id, stops);
 
         return res.send({
             success: true,
@@ -61,7 +61,7 @@ const record = await pb.collection('stops').update(params.id, stops);
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -69,55 +69,55 @@ const record = await pb.collection('stops').update(params.id, stops);
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('stops').getFullList(); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('stops').getFullList();
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('stops').getOne(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('stops').getOne(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('stops').delete(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('stops').delete(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 module.exports = router;

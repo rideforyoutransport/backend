@@ -32,42 +32,44 @@ let bookingData = {};
 // };
 
 
-const createOrUpdatebookingData =(bData)=>{
+const createOrUpdatebookingData = (bData) => {
 
-    bookingData.vendor=bData.vendor;
-    bookingData.trip=bData.trip;
-    bookingData.user=bData.user;
-    bookingData.driver=bData.driver;
-    bookingData.amountPaid=bData.amountPaid;
-    bookingData.amountLeft=bData.amountLeft;
-    bookingData.bookingDate=bData.bookingDate;
-    bookingData.totalAmount=bData.totalAmount;
-    bookingData.luggageTypeOpted=bData.luggageTypeOpted;
-    bookingData.totalSeatsBooked=bData.totalSeatsBooked;
-    bookingData.otherUsers=bData.otherUsers;
-    bookingData.status=bData.status? bData.status:0;
-    bookingData.promoCode=bData.promoCode?bData.promoCode:false;
-    bookingData.reciept=bData.reciept;
-    bookingData.tipPaid=bData.tipPaid?bData.tipPaid:false;
-    bookingData.tipAmount=bData.tipPaid?bdata.tipAmount:0;
-    bookingData.from=bData.from;
-    bookingData.to=bData.to;
-    
+    //bookingData.vendor=bData.vendor;
+    bookingData.trip = bData.trip;
+    bookingData.user = bData.user;
+    bookingData.driver = bData.driver;
+    //bookingData.amountPaid=bData.amountPaid;
+    //bookingData.amountLeft=bData.amountLeft;
+    //bookingData.bookingDate=bData.bookingDate;
+    //bookingData.totalAmount=bData.totalAmount;
+    bookingData.luggageTypeOpted = bData.luggageTypeOpted;
+    bookingData.totalSeatsBooked = bData.totalSeatsBooked;
+    bookingData.otherUsers = bData.otherUsers;
+    bookingData.status = bData.status ? bData.status : 0;
+    //bookingData.promoCode=bData.promoCode?bData.promoCode:false;
+    bookingData.reciept = bData.reciept;
+    bookingData.tipPaid = bData.tipPaid ? bData.tipPaid : false;
+    bookingData.tipAmount = bData.tipPaid ? bdata.tipAmount : 0;
+    bookingData.from = bData.from;
+    bookingData.to = bData.to;
+    bookingData.status = bData.status ? bData.status : 1
+
     return bookingData;
 }
 
 
-const getDataFromTrip =async (data)=>{
+const getDataFromTrip = async (data) => {
     // console.log(data.trip);
 
     let record = await pb.collection('trips').getOne(data.trip);
     // console.log(record);
-    bookingData.vendor=record.vendor;
-    bookingData.driver=record.driver;
-    bookingData.amountPaid=record.bookingMinimumAmount>0?record.bookingMinimumAmount:25;
-    bookingData.bookingDate=record.tripDate;
-    bookingData.amountLeft=record.totalTripAmount - bookingData.amountPaid;
-    bookingData.totalAmount=record.totalTripAmount;
+    bookingData.vendor = record.vendor;
+    bookingData.driver = record.driver;
+    bookingData.vehicle = record.vehicle ? record.vehicle : null;
+    bookingData.amountPaid = record.bookingMinimumAmount > 0 ? record.bookingMinimumAmount : 25;
+    bookingData.bookingDate = record.tripDate;
+    bookingData.amountLeft = record.totalTripAmount - bookingData.amountPaid;
+    bookingData.totalAmount = record.totalTripAmount;
     return data;
 }
 
@@ -76,20 +78,20 @@ router.post('/add', async (req, res) => {
     let bData = await createOrUpdatebookingData(req.body);
     try {
 
-       let  data= await getDataFromTrip(bData);
-       console.log(data);
+        let data = await getDataFromTrip(bData);
+        console.log(data);
         const record = await pb.collection('bookings').create(data);
 
         return res.send({
             success: true,
-            result: record
+            message: "Booking confirmed!"
         })
 
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -100,9 +102,9 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let bookings = createOrUpdatebookingData(req.body);
-    console.log({bookings});
+    console.log({ bookings });
     try {
-const record = await pb.collection('bookings').update(params.id, bookings);
+        const record = await pb.collection('bookings').update(params.id, bookings);
 
         return res.send({
             success: true,
@@ -113,7 +115,7 @@ const record = await pb.collection('bookings').update(params.id, bookings);
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -127,81 +129,82 @@ const record = await pb.collection('bookings').update(params.id, bookings);
 router.post('/all', async (req, res) => {
     try {
         let expandKeys = req.body.expandKeys;
-        let expandKeyNames =[];
-        Object.keys(expandKeys).forEach(key =>{
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
         let typeFilter = '';
 
-    if(req.body.type==0){
-        typeFilter='bookingDate < @now'
-    }else{
-        typeFilter= 'bookingDate > @now'
-    }
+        if (req.body.type == 0) {
+            typeFilter = 'bookingDate < @now'
+        } else {
+            typeFilter = 'bookingDate > @now'
+        }
 
         // console.log(new Date().format("Y-m-d H:i:s.uZ"));
-    let records = await pb.collection('bookings').getList(req.body.from, req.body.to,{expand:expandKeyNames.toString(),filter:
-        typeFilter
-    }); 
-    records =  utils.cleanExpandData(records,expandKeys,true);
+        let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
+            expand: expandKeyNames.toString(), filter:
+                typeFilter
+        });
+        records = utils.cleanExpandData(records, expandKeys, true);
 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 router.post('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
         let expandKeys = req.body.expandKeys;
-        let expandKeyNames =[];
-        Object.keys(expandKeys).forEach(key =>{
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
 
         let records = [];
-        records.push(await pb.collection('bookings').getOne(params.id, {expand:expandKeyNames.toString()})); 
-        records = utils.cleanExpandData(records, expandKeyNames,false);
+        records.push(await pb.collection('bookings').getOne(params.id, { expand: expandKeyNames.toString() }));
+        records = utils.cleanExpandData(records, expandKeyNames, false);
 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('bookings').delete(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('bookings').delete(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 module.exports = router;

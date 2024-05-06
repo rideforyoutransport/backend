@@ -10,17 +10,17 @@ const pb = new PocketBase(pb_port);
 let vendorData = {};
 
 
-const createOrUpdatevendorData =(vData)=>{
+const createOrUpdatevendorData = (vData) => {
 
-    vendorData.vendorname=vData.vendorName;
-    vendorData.name=vData.name;
-    vendorData.email=vData.email;
-    vendorData.password=vData.password;
-    vendorData.passwordConfirm=vData.password;
-    vendorData.vendorname=vData.vendorname;
-    vendorData.phoneNumber=vData.phoneNumber;
-    if(vData["oldPassword"]){
-        vendorData.oldPassword=vData["oldPassword"];
+    vendorData.vendorname = vData.vendorName;
+    vendorData.name = vData.name;
+    vendorData.email = vData.email;
+    vendorData.password = vData.password;
+    vendorData.passwordConfirm = vData.password;
+    vendorData.vendorname = vData.vendorname;
+    vendorData.phoneNumber = vData.phoneNumber;
+    if (vData["oldPassword"]) {
+        vendorData.oldPassword = vData["oldPassword"];
     }
 
     return vendorData;
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('vendor').listAuthMethods();
@@ -65,7 +65,7 @@ router.post('/register', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('vendor').listAuthMethods();
@@ -75,9 +75,9 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let vendor = createOrUpdatevendorData(req.body);
-    console.log({vendor});
+    console.log({ vendor });
     try {
-const record = await pb.collection('vendor').update(params.id, vendor);
+        const record = await pb.collection('vendor').update(params.id, vendor);
 
         return res.send({
             success: true,
@@ -88,7 +88,7 @@ const record = await pb.collection('vendor').update(params.id, vendor);
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('vendor').listAuthMethods();
@@ -97,19 +97,19 @@ const record = await pb.collection('vendor').update(params.id, vendor);
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('vendor').getList(req.body.from, req.body.to); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('vendor').getList(req.body.from, req.body.to);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 // verify email via the auth token , not 6digit code 
@@ -125,7 +125,7 @@ router.post('/verify', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -142,7 +142,7 @@ router.post('/resetPassword', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -150,37 +150,37 @@ router.post('/resetPassword', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('vendor').getOne(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('vendor').getOne(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('vendor').delete(params.id); 
-    return res.send({
-        success: true,
-        result: records
-    })   
+        const records = await pb.collection('vendor').delete(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
- 
+
 })
 
 

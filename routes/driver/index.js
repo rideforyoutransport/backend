@@ -16,10 +16,10 @@ const createOrUpdateDriverData = (dData) => {
     driverData.email = dData.email;
     driverData.emailVisibility = dData.emailVisibility;
     driverData.rating = dData.rating;
-    driverData.totalTrips =  dData.totalTrips;
-    driverData.vendorId= dData.vendorId;
-    driverData.number=dData.number;
-    driverData.username=dData.username;
+    driverData.totalTrips = dData.totalTrips;
+    driverData.vendorId = dData.vendorId;
+    driverData.number = dData.number;
+    driverData.username = dData.username;
     driverData.password = dData.password;
     driverData.passwordConfirm = dData.password;
     driverData.phoneNumber = dData.phoneNumber;
@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -64,7 +64,7 @@ router.post('/verify', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -81,7 +81,7 @@ router.post('/resetPassword', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -104,7 +104,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('driver').listAuthMethods();
@@ -123,7 +123,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -132,7 +132,7 @@ router.post('/all', async (req, res) => {
 
 router.post('/allBookings', async (req, res) => {
     try {
-        const records = await pb.collection('bookings').getList(req.body.from, req.body.to,{fields:'id'});
+        const records = await pb.collection('bookings').getList(req.body.from, req.body.to, { fields: 'id' });
 
         console.log(pb.authStore);
 
@@ -144,7 +144,7 @@ router.post('/allBookings', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -163,7 +163,7 @@ router.get('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -181,7 +181,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 

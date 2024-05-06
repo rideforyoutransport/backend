@@ -57,22 +57,22 @@ const createOrUpdatetripData = (tData) => {
     tripData.actualStartTime = tData.actualStartTime;
     tripData.actualEndTime = tData.actualEndTime;
     tripData.requestedTrip = tData.requestedTrip;
-    tripData.requestingUser=tData.requestingUser;
+    tripData.requestingUser = tData.requestingUser;
     return tripData;
 }
 let filterFromAndTo = (trips, filter) => {
     let finalTrips = [];
     trips.forEach(trip => {
-       let finalStops = calculateFinalStops([trip.from, ...trip.stops, trip.to]);
+        let finalStops = calculateFinalStops([trip.from, ...trip.stops, trip.to]);
         if (finalStops.includes(filter.from) && finalStops.includes(filter.to) && finalStops.indexOf(filter.from) < finalStops.indexOf(filter.to)) {
-        finalTrips.push(trip);
+            finalTrips.push(trip);
         }
     });
-return finalTrips;
+    return finalTrips;
 
 }
 
-const calculateFinalStops = (allStops)=>{
+const calculateFinalStops = (allStops) => {
 
     allStops.reduce((accumulator, item) => {
         if (!accumulator.includes(item)) {
@@ -87,18 +87,18 @@ const filterToString = (filter) => {
 
     finalFilter = "";
 
-    if(filter.length>0){
+    if (filter.length > 0) {
         filter.forEach(element => {
             console.log(element);
             let eleFilter = element.fieldName + " " + element.operand + " '" + element.value + "'"
             finalFilter += eleFilter + ' && '
-    
+
         });
         finalFilter = finalFilter.slice(0, finalFilter.length - 3);
-    }    
-    console.log("finalFilter",finalFilter);
+    }
+    console.log("finalFilter", finalFilter);
     return finalFilter
-   
+
 }
 
 router.post('/add', async (req, res) => {
@@ -116,7 +116,7 @@ router.post('/add', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('trips').listAuthMethods();
@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
     // const result = await pb.collection('trips').listAuthMethods();
@@ -149,12 +149,12 @@ router.patch('/:id', async (req, res) => {
 router.post('/all', async (req, res) => {
     try {
         let expandKeys = req.body.expandKeys;
-        let expandKeyNames =[];
-        Object.keys(expandKeys).forEach(key =>{
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        let records = await pb.collection('trips').getList(req.body.from, req.body.to,{expand:expandKeyNames.toString()});
-        records =  utils.cleanExpandData(records,expandKeys,true);
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString() });
+        records = utils.cleanExpandData(records, expandKeys, true);
         return res.send({
             success: true,
             result: records
@@ -163,7 +163,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -175,38 +175,38 @@ router.post('/allFilter', async (req, res) => {
     let fromToFilter = req.body.filter2;
     let finalFilter = filterToString(req.body.filter)
     let expandKeys = req.body.expandKeys;
-    let expandKeyNames =[];
-    Object.keys(expandKeys).forEach(key =>{
+    let expandKeyNames = [];
+    Object.keys(expandKeys).forEach(key => {
         expandKeyNames.push(key);
     })
 
     try {
         const records = await pb.collection('trips').getFullList({
             filter: finalFilter,
-            expand:expandKeyNames.toString()
+            expand: expandKeyNames.toString()
         });
         console.log(records)
-        if(fromToFilter.from.length>0 && fromToFilter.to.length>0){
+        if (fromToFilter.from.length > 0 && fromToFilter.to.length > 0) {
             let finalRecords = filterFromAndTo(records, fromToFilter);
-            finalRecords=  utils.cleanExpandData(finalRecords,expandKeys,false);
+            finalRecords = utils.cleanExpandData(finalRecords, expandKeys, false);
             return res.send({
                 success: true,
                 result: finalRecords
             })
-           
-        }else{
+
+        } else {
             return res.send({
                 success: true,
                 result: records
             })
         }
-       
-       
+
+
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 })
@@ -214,26 +214,26 @@ router.post('/allFilter', async (req, res) => {
 router.post('/:id', async (req, res) => {
     try {
         let expandKeys = req.body.expandKeys;
-        let expandKeyNames =[];
-        Object.keys(expandKeys).forEach(key =>{
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-    
+
         const params = Object.assign({}, req.params);
-        let records = await pb.collection('trips').getOne(params.id, {expand:expandKeyNames.toString()});
-        let newRecords=[];
+        let records = await pb.collection('trips').getOne(params.id, { expand: expandKeyNames.toString() });
+        let newRecords = [];
         newRecords.push(records);
         console.log(newRecords);
-        newRecords=  utils.cleanExpandData(newRecords,expandKeys,false);
+        newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
         return res.send({
             success: true,
-            result: newRecords
+            result: newRecords[0]
         })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
@@ -251,7 +251,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            error: error
+            message: error.response.message
         })
     }
 
