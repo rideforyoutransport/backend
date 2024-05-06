@@ -63,10 +63,11 @@ const getDataFromTrip = async (data) => {
     let record = await pb.collection('trips').getOne(data.trip);
     bookingData.vendor = record.vendor;
     bookingData.driver = record.driver;
-    bookingData.amountPaid = record.bookingMinimumAmount > 0 ? record.bookingMinimumAmount : 25;
+    bookingData.vehicle = record.vehicle;
+    bookingData.amountPaid = (record.bookingMinimumAmount > 0 ? record.bookingMinimumAmount : 25) * bookingData.totalSeatsBooked;
     bookingData.bookingDate = record.tripDate;
-    bookingData.amountLeft = record.totalTripAmount - bookingData.amountPaid;
-    bookingData.totalAmount = record.totalTripAmount;
+    bookingData.totalAmount = record.totalTripAmount * bookingData.totalSeatsBooked;
+    bookingData.amountLeft = bookingData.totalAmount - bookingData.amountPaid;
     return data;
 }
 
@@ -76,12 +77,22 @@ router.post('/add', async (req, res) => {
     try {
 
         let data = await getDataFromTrip(bData);
-        const record = await pb.collection('bookings').create(data);
+        let trip = await pb.collection('trips').getOne(data.trip);
+        if(bData.totalSeatsBooked <= trip.totalSeatsLeft){
+            trip.totalSeatsLeft =  trip.totalSeatsLeft - bData.totalSeatsBooked;
+            await pb.collection('trips').update(trip.id, trip);
+            await pb.collection('bookings').create(data);
 
-        return res.send({
-            success: true,
-            message: "Booking confirmed!"
-        })
+            return res.send({
+                success: true,
+                message: "Booking confirmed!"
+            })
+        } else {
+            return res.send({
+                success: false,
+                message: "Not enough seats left!"
+            })
+        }
 
     } catch (error) {
         logger.error(error);
@@ -141,6 +152,11 @@ router.post('/all', async (req, res) => {
                 typeFilter
         });
         records = utils.cleanExpandData(records, expandKeys, true);
+        records.forEach(element=>{
+            let details = element.otherUsers["details"];
+            element.otherUsers["details"] = JSON.parse(details);
+            return element;
+        })
 
         return res.send({
             success: true,
@@ -167,11 +183,17 @@ router.post('/:id', async (req, res) => {
 
         let records = [];
         records.push(await pb.collection('bookings').getOne(params.id, { expand: expandKeyNames.toString() }));
-        records = utils.cleanExpandData(records, expandKeyNames, false);
+        console.log(records[0].expand);
+        records = utils.cleanExpandData(records, expandKeys, false);
+        records.forEach(element=>{
+            let details = element.otherUsers["details"];
+            element.otherUsers["details"] = JSON.parse(details);
+            return element;
+        })
 
         return res.send({
             success: true,
-            result: records
+            result: records[0]
         })
     } catch (error) {
         logger.error(error);

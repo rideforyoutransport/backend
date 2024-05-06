@@ -153,7 +153,8 @@ router.post('/all', async (req, res) => {
         Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString() });
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
+            'tripDate > @now && totalSeatsLeft>0' });
         records = utils.cleanExpandData(records, expandKeys, true);
         return res.send({
             success: true,
