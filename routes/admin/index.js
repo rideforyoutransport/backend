@@ -47,11 +47,11 @@ console.log('Example app listening on port 3000!');
 router.use('/vendor', require('./vendor'));
 router.use('/vehicle', require('./vehicle'));
 router.use('/driver', require('./driver'));
-router.use('/scheduledTrip', require('./scheduledTrip'));
 router.use('/booking', require('./booking'));
 router.use('/user', require('./user'));
 router.use('/promoCode', require('./promoCode'));
 router.use('/stops', require('./stops'));
+router.use('/admin/trips', require('./trips'));
 
 
 

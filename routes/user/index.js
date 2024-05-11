@@ -181,8 +181,9 @@ router.delete('/:id', async (req, res) => {
 
 })
 
-
-
+router.use('/booking', require('./booking'));
+router.use('/trips', require('./trips'));
+router.use('/stops', require('./stops'));
 
 
 module.exports = router;
