@@ -240,7 +240,13 @@ router.post('/:id', async (req, res) => {
             let newReturnRecords = [];
             newReturnRecords.push(returnRecords);
             newReturnRecords = utils.cleanExpandData(newReturnRecords, expandKeys, false);
+            newReturnRecords.forEach(e=> {
+                e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+                e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+            })
             trip.returnTrip = newReturnRecords[0];
+        } else {
+            trip.returnTrip = null;
         }
         return res.send({
             success: true,
