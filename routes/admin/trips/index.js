@@ -82,7 +82,7 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3)+'&& isReturnTrip=false';
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3)+'&& isReturnTrip=false && requestedTrip=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
@@ -157,7 +157,7 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'tripDate > @now && totalSeatsLeft>0 && isReturnTrip=false' });
+            'tripDate > @now && totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false' });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(e=> {
             e["vehicle"] = e["vehicle"]? e["vehicle"]: null
