@@ -7,59 +7,6 @@ var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
 
-
-
-
-let tripData = {};
-// const data = {
-
-//     "vendor": "RELATION_RECORD_ID",
-//     "from": "JSON",
-//     "to": "JSON",
-//     "duration": 123,
-//     "date": "2022-01-01 10:00:00.123Z",
-//     "vehicle": "RELATION_RECORD_ID",
-//     "drive": "RELATION_RECORD_ID",
-//     "luggage": [
-//         "s"
-//     ],
-//     "stops": "JSON",
-//     "bma": "test",
-//     "tta": "test",
-//     "refreshments": true,
-//     "cancelationCharges": "test",
-//     "recurring": "2022-01-01 10:00:00.123Z",
-//     "promoCodes": "test"
-// };
-const createOrUpdatetripData = (tData) => {
-
-    tripData.vendor = tData.vendor;
-    tripData.from = tData.from;
-    tripData.to = tData.to;
-    tripData.duration = tData.duration;
-    tripData.tripDate = tData.tripDate;
-    tripData.tripDescription = tData.tripDescription;
-    tripData.vehicle = tData.vehicle;
-    tripData.driver = tData.driver;
-    tripData.luggage = tData.luggage;
-    tripData.stops = tData.stops;
-    tripData.bookingMinimumAmount = tData.bookingMinimumAmount;
-    tripData.totalTripAmount = tData.totalTripAmount;
-    tripData.refreshments = tData.refreshments;
-    tripData.cancelationCharges = tData.cancelationCharges;
-    tripData.recurring = tData.recurring;
-    tripData.promoCodes = tData.promoCodes;
-    // needs to be removed after 15/04/24 demo 
-    tripData.totalSeatsLeft = tData.totalSeatsLeft;
-    tripData.totalSeats = tData.totalSeatsLeft;
-
-    tripData.cancelationCharges = tData.cancelationCharges;
-    tripData.actualStartTime = tData.actualStartTime;
-    tripData.actualEndTime = tData.actualEndTime;
-    tripData.requestedTrip = tData.requestedTrip;
-    tripData.requestingUser = tData.requestingUser;
-    return tripData;
-}
 let filterFromAndTo = (trips, filter) => {
     let finalTrips = [];
     trips.forEach(trip => {
@@ -94,57 +41,12 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3);
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3)+'&& isReturnTrip=false && requestedTrip=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
 
 }
-
-router.post('/add', async (req, res) => {
-
-    let trip = createOrUpdatetripData(req.body);
-    try {
-        const record = await pb.collection('trips').create(trip);
-
-        return res.send({
-            success: true,
-            result: record
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response.message
-        })
-    }
-    // const result = await pb.collection('trips').listAuthMethods();
-
-})
-router.patch('/:id', async (req, res) => {
-
-    const params = Object.assign({}, req.params);
-    let trip = createOrUpdatetripData(req.body);
-    console.log({ trip });
-    try {
-        const record = await pb.collection('trips').update(params.id, trip);
-
-        return res.send({
-            success: true,
-            result: record
-        })
-
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response.message
-        })
-    }
-    // const result = await pb.collection('trips').listAuthMethods();
-
-})
 
 router.post('/all', async (req, res) => {
     try {
@@ -154,8 +56,13 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'tripDate > @now && totalSeatsLeft>0' });
+            'tripDate > @now && totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false' });
         records = utils.cleanExpandData(records, expandKeys, true);
+        records.forEach(e=> {
+            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        })
+        console.log(records);
         return res.send({
             success: true,
             result: records
@@ -169,12 +76,10 @@ router.post('/all', async (req, res) => {
     }
 })
 
-
-
 router.post('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
-    let finalFilter = filterToString(req.body.filter)
+    let finalFilter = filterToString(req.body.filter);
     let expandKeys = req.body.expandKeys;
     let expandKeyNames = [];
     Object.keys(expandKeys).forEach(key => {
@@ -186,6 +91,10 @@ router.post('/allFilter', async (req, res) => {
             filter: finalFilter,
             expand: expandKeyNames.toString()
         });
+        records.forEach(e=> {
+            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        })
         console.log(records)
         if (fromToFilter.from.length > 0 && fromToFilter.to.length > 0) {
             let finalRecords = filterFromAndTo(records, fromToFilter);
@@ -194,7 +103,6 @@ router.post('/allFilter', async (req, res) => {
                 success: true,
                 result: finalRecords
             })
-
         } else {
             return res.send({
                 success: true,
@@ -224,29 +132,25 @@ router.post('/:id', async (req, res) => {
         let records = await pb.collection('trips').getOne(params.id, { expand: expandKeyNames.toString() });
         let newRecords = [];
         newRecords.push(records);
-        console.log(newRecords);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
+        let trip = newRecords[0];
+        if(trip.returnTrip){
+            let returnRecords = await pb.collection('trips').getOne(trip.returnTrip, { expand: expandKeyNames.toString() });
+            let newReturnRecords = [];
+            newReturnRecords.push(returnRecords);
+            newReturnRecords = utils.cleanExpandData(newReturnRecords, expandKeys, false);
+            newReturnRecords.forEach(e=> {
+                e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+                e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+            })
+            trip.returnTrip = newReturnRecords[0];
+        } else {
+            trip.returnTrip = null;
+        }
+        console.log(trip);
         return res.send({
             success: true,
-            result: newRecords[0]
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response.message
-        })
-    }
-
-})
-
-router.delete('/:id', async (req, res) => {
-    try {
-        const params = Object.assign({}, req.params);
-        const records = await pb.collection('trips').delete(params.id);
-        return res.send({
-            success: true,
-            result: records
+            result: trip
         })
     } catch (error) {
         logger.error(error);

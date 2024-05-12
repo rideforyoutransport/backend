@@ -51,7 +51,7 @@ router.use('/booking', require('./booking'));
 router.use('/user', require('./user'));
 router.use('/promoCode', require('./promoCode'));
 router.use('/stops', require('./stops'));
-router.use('/admin/trips', require('./trips'));
+router.use('/trips', require('./trips'));
 
 
 
