@@ -90,7 +90,7 @@ router.patch('/:id', async (req, res) => {
 
 })
 
-router.get('/all', async (req, res) => {
+router.post('/all', async (req, res) => {
     try {
         const records = await pb.collection('users').getList(req.body.from, req.body.to);
         return res.send({

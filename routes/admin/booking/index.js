@@ -139,17 +139,16 @@ router.post('/all', async (req, res) => {
         Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        let typeFilter = '';
+        // let typeFilter = '';
 
-        if (req.body.type == 0) {
-            typeFilter = "bookingDate < @now"
-        } else if (req.body.type == 1) {
-            typeFilter = "bookingDate > @now"
-        }
-        console.log(typeFilter);
+        // if (req.body.type == 0) {
+        //     typeFilter = "bookingDate < @now"
+        // } else if (req.body.type == 1) {
+        //     typeFilter = "bookingDate > @now"
+        // }
+        // console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
-            expand: expandKeyNames.toString(), filter:
-                typeFilter
+            expand: expandKeyNames.toString()
         });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(element=>{

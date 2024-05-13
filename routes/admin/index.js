@@ -3,23 +3,31 @@ const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
 const PocketBase = require('pocketbase/cjs')
-var pb_port =  process.env.PB_PORT || '8090';
+var pb_port =  process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
-router.get('/validate', async (req, res) => {
-    
-        const adminData = await pb.admins.authWithPassword('rideforyoutransport@gmail.com', 'ride4u@12345');
-        const result = await pb.collection('users').listAuthMethods();
-    
-        console.log(result,adminData);
+router.post('/login', async (req, res) => {
+
+    try {
+        console.log(req.body);
+        const adminData = await pb.collection('Admin').authWithPassword(req.body.email, req.body.password);
+        console.log(adminData);
+
+
         return res.send({
             success: true,
-            result:result,
-            adminData:adminData
-          })
+            result: { id: adminData.record.id, token: adminData.token }
+        })
 
-    
-  })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
 // Reset password will work from chrome/ application URL not from the Application
 router.post('/resetPassword', async (req, res) => {
     try {
