@@ -96,7 +96,7 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
-        const records = await pb.collection('driver').getList(req.body.from, req.body.to);
+        const records = await pb.collection('driver').getList(req.body.from, req.body.to, {filter: 'deleted=false'});
 
         return res.send({
             success: true,

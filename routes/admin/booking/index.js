@@ -148,7 +148,7 @@ router.post('/all', async (req, res) => {
         // }
         // console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
-            expand: expandKeyNames.toString()
+            expand: expandKeyNames.toString(), filter: 'deleted=false'
         });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(element=>{

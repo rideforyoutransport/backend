@@ -9,7 +9,7 @@ const pb = new PocketBase(pb_port);
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('stops').getFullList();
+        const records = await pb.collection('stops').getFullList({filter: 'deleted=false'});
         return res.send({
             success: true,
             result: records
