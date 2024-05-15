@@ -14,7 +14,7 @@ const createOrUpdateDriverData = (dData) => {
 
     driverData.name = dData.name;
     driverData.email = dData.email;
-    driverData.emailVisibility = dData.emailVisibility;
+    driverData.emailVisibility = true;
     driverData.rating = dData.rating;
     driverData.totalTrips = dData.totalTrips;
     driverData.vendorId = dData.vendorId;
@@ -172,7 +172,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('driver').delete(params.id);
+        const records = await pb.collection('driver').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records

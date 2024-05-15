@@ -16,6 +16,7 @@ const createOrUpdateUserData = (uData) => {
     userData.password = uData.password;
     userData.passwordConfirm = uData.password;
     userData.phoneNumber = uData.phoneNumber;
+    userData.emailVisibility = true;
     if (uData["oldPassword"]) {
         userData.oldPassword = uData["oldPassword"];
     }
@@ -166,7 +167,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('users').delete(params.id);
+        const records = await pb.collection('users').update(params.id, {deleted: true});
         return res.send({
             success: true,
             message: "Account Deleted"

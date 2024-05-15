@@ -208,7 +208,7 @@ router.post('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('bookings').delete(params.id);
+        const records = await pb.collection('bookings').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records

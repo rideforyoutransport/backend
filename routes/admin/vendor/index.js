@@ -19,6 +19,7 @@ const createOrUpdatevendorData = (vData) => {
     vendorData.passwordConfirm = vData.password;
     vendorData.vendorname = vData.vendorname;
     vendorData.phoneNumber = vData.phoneNumber;
+    vendorData.emailVisibility = true;
     if (vData["oldPassword"]) {
         vendorData.oldPassword = vData["oldPassword"];
     }
@@ -168,7 +169,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('vendor').delete(params.id);
+        const records = await pb.collection('vendor').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records

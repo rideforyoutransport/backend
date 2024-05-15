@@ -157,7 +157,7 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'tripDate > @now && totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false' });
+            'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false' });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(e=> {
             e["vehicle"] = e["vehicle"]? e["vehicle"]: null
@@ -267,9 +267,9 @@ router.delete('/:id', async (req, res) => {
         const params = Object.assign({}, req.params);
         let trip = await pb.collection('trips').getOne(params.id);
         if(trip.returnTrip){
-            const recordsReturn = await pb.collection('trips').delete(trip.returnTrip);
+            const recordsReturn = await pb.collection('trips').update(trip.returnTrip, {deleted: true});
         }
-        const records = await pb.collection('trips').delete(params.id);
+        const records = await pb.collection('trips').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records

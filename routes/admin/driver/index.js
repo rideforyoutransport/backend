@@ -14,7 +14,7 @@ const createOrUpdateDriverData = (dData) => {
 
     driverData.name = dData.name;
     driverData.email = dData.email;
-    driverData.emailVisibility = dData.emailVisibility;
+    driverData.emailVisibility = true;
     driverData.rating = dData.rating;
     driverData.totalTrips = dData.totalTrips;
     driverData.vendorId = dData.vendorId;
@@ -29,6 +29,27 @@ const createOrUpdateDriverData = (dData) => {
 
     return driverData;
 }
+
+router.post('/add', async (req, res) => {
+
+    let vData = createOrUpdateDriverData(req.body);
+    try {
+        const record = await pb.collection('driver').create(vData);
+
+        return res.send({
+            success: true,
+            result: record
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
 
 // Reset password will work from chrome/ application URL not from the Application
 router.post('/resetPassword', async (req, res) => {
@@ -113,7 +134,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('driver').delete(params.id);
+        const records = await pb.collection('driver').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records

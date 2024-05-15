@@ -49,9 +49,6 @@ router.post('/resetPassword', async (req, res) => {
 
 console.log('Example app listening on port 3000!');
 
-
-
-
 router.use('/vendor', require('./vendor'));
 router.use('/vehicle', require('./vehicle'));
 router.use('/driver', require('./driver'));

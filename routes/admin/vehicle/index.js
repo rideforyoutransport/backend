@@ -119,7 +119,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('vehicle').delete(params.id);
+        const records = await pb.collection('vehicle').update(params.id, {deleted: true});
         return res.send({
             success: true,
             result: records
