@@ -29,6 +29,7 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.refreshments = tData.refreshments;
     tripData.recurring = tData.recurring;
     tripData.promoCodes = tData.promoCodes;
+    tripData.fares = tData.fares;
     let vehicle;
     if(tData.vehicle){
         vehicle = await pb.collection('vehicle').getOne(tData.vehicle);
