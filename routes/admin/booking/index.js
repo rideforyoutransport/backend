@@ -222,4 +222,25 @@ router.delete('/:id', async (req, res) => {
 
 })
 
+router.post('/deleteMultiple', async (req, res) => {
+    try {
+        const idArr = req.body.ids;
+        let records;
+        idArr.map(async (id)=>{
+            records = await pb.collection('bookings').update(id, {deleted: true});
+        })
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
+
 module.exports = router;
