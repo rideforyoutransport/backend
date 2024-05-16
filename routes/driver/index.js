@@ -130,15 +130,45 @@ router.post('/all', async (req, res) => {
 })
 
 
-router.post('/allBookings', async (req, res) => {
+router.post('/allTrips', async (req, res) => {
     try {
-        const records = await pb.collection('bookings').getList(req.body.from, req.body.to, { fields: 'id' });
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        })
+        let typeFilter = '';
 
-        console.log(pb.authStore);
+        if (req.body.type == 0) {
+            typeFilter = "tripDate < @now"
+        } else if (req.body.type == 1) {
+            typeFilter = "tripDate > @now"
+        }
+        console.log(typeFilter);
+        let trips = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(),
+            filter: typeFilter+"&& driver=\""+`${req.body.id}`+"\""+" && requestedTrip=false && deleted=false" });
+
+        trips = utils.cleanExpandData(trips, expandKeys, true);
+        trips.forEach(e=> {
+            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        })
+        for(let i = 0; i< trips.length; i++){
+            let trip = trips[i];
+            let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {filter: "trip=\""+`${trip.id}`+"\"" });
+            bookings = utils.cleanExpandData(bookings, [], true);
+            bookings.forEach(booking=>{
+                let details = booking.otherUsers["details"];
+                booking.otherUsers["details"] = JSON.parse(details);
+                return booking;
+            })
+            trip.bookings = bookings;
+
+        }
 
         return res.send({
             success: true,
-            result: records
+            result: trips
         })
     } catch (error) {
         logger.error(error);
