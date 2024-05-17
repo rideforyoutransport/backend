@@ -12,8 +12,18 @@ const pb = new PocketBase(pb_port);
 
 let tripData = {};
 
-const createOrUpdatetripData = async (tData, returnTrip) => {
+const searchFromAndTo=(tData)=>{
+    console.log(tData);
+    let origin = pb.collection('stops').getOne(tData.from.place_id);
+    let destination=pb.collection('stops').getOne(tData.from.place_id);
 
+    console.log({origin},{destination});
+
+}
+
+const createOrUpdatetripData = async (tData, returnTrip) => {
+    console.log(tData)
+    searchFromAndTo(tData);
     tripData.vendor = tData.vendor;
     tripData.from = tData.from;
     tripData.to = tData.to;
@@ -34,7 +44,6 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     if(tData.vehicle){
         vehicle = await pb.collection('vehicle').getOne(tData.vehicle);
     }
-    console.log(vehicle.totalSeats);
 
     tripData.totalSeatsLeft = vehicle? vehicle.totalSeats: tData.totalSeatsLeft;
     tripData.totalSeats = vehicle? vehicle.totalSeats: tData.totalSeats;

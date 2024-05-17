@@ -1,20 +1,20 @@
+var axios = require("axios");
 
-const cleanExpandData = (data, keys,paginatedData) => {
+
+const cleanExpandData = (data, keys, paginatedData) => {
     console.log(data);
-    if(paginatedData){
-        data=data.items;
+    if (paginatedData) {
+        data = data.items;
     }
-    if(keys.length!=0){
-        data.forEach(element => {
-            let expandObject = element.expand
-            delete element.expand;
-            Object.keys(expandObject).forEach(key => {
-                delete element[key];
-                element[key] = createNewKeyObject(expandObject[key], keys[key]!=null && keys[key].length >0 ? keys[key] : ["id", "name"]);
-            });
-    
+    data.forEach(element => {
+        let expandObject = element.expand
+        delete element.expand;
+        Object.keys(expandObject).forEach(key => {
+            delete element[key];
+            element[key] = createNewKeyObject(expandObject[key], keys[key] != null && keys[key].length > 0 ? keys[key] : ["id", "name"]);
         });
-    }
+
+    });
 
     return data;
 }
@@ -94,6 +94,41 @@ let sendErrorMail = (error, source_file, source_function, details) => {
     emailService.send(email_details);
 }
 
+let callMapsAPIForETA = (from, to, stops) => {
+
+    let eta =null;
+
+
+    axios({
+        url: 'https://maps.googleapis.com/maps/api/distancematrix/json',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: {
+            'origins': encodeURIComponent(`${from.lat},${from.long}`),
+            "key": process.env.MAPS_KEY,
+            "destinations": encodeURIComponent(createStringForStops(stops)+`${to.lat},${to.long}`)
+        }
+    })
+        .then(function (response) {
+            console.log(response.data)
+            eta= response.data.rows;
+            return eta
+        })
+        .catch(function (error) {
+            console.log(error)
+        })
+
+
+    return eta;
+}
+
+const createStringForStops = (stops) => {
+    let finalParam = ''
+    stops.forEach(element => {
+        finalParam = finalParam + `${element.lat},${element.long}|`
+    });
+    // finalParam = finalParam.substring(0, finalParam.length - 1);
+    return finalParam;
+}
 
 
 module.exports = {
