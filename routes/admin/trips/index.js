@@ -12,53 +12,105 @@ const pb = new PocketBase(pb_port);
 
 let tripData = {};
 
-const searchFromAndTo=(tData)=>{
-    console.log(tData);
-    let origin = pb.collection('stops').getOne(tData.from.place_id);
-    let destination=pb.collection('stops').getOne(tData.from.place_id);
 
-    console.log({origin},{destination});
+const calculateTotalTripAmount = async (tData) => {
+    let amount = 0
+    const fares = tData.fares;
+    fares.forEach(fare => {
+        if (fare.from.place_id == tData.from.place_id && fare.to.place_id == tData.to.place_id) {
+            amount = fare.fare;
+        }
+    });
+    // console.log("this is the amount ", amount )
+    return amount;
+}
 
+const createDataForStops = (data, obj) => {
+
+
+    const returnStop = {
+        "place_id": data[obj].place_id,
+        "name": data[obj].place_name,
+        "geoLocation": { 'lat': data[obj].lat, 'lng': data[obj].lng },
+        "deleted": false
+    };
+    return returnStop;
 }
 
 const createOrUpdatetripData = async (tData, returnTrip) => {
-    console.log(tData)
-    searchFromAndTo(tData);
+
+    let totalTripAmount = await calculateTotalTripAmount(tData);
+    tripData.totalTripAmount = parseFloat(totalTripAmount);
     tripData.vendor = tData.vendor;
-    tripData.from = tData.from;
-    tripData.to = tData.to;
-    tripData.duration = tData.duration;
+    let recordsOrigin = null, recordsDestination = null, recordFrom = null, recordTo = null;
+
+    try {
+
+        let originPlaceId = tData.from.place_id;
+        let destinationPlaceId = tData.to.place_id;
+        recordsOrigin = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${originPlaceId}"` });
+        recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
+
+        console.log(recordsDestination.length > 0, recordsOrigin.length > 0)
+        if (recordsOrigin == null || recordsOrigin.length == 0) {
+            const dataFrom = createDataForStops(tData, 'from')
+            // console.log({dataFrom});
+            recordFrom = await pb.collection('stops').create(dataFrom);
+            tripData.from = recordFrom.id;
+            // console.log({recordFrom});
+
+        } else
+            tripData.from = recordsOrigin[0].id;
+
+        if (recordsDestination == null || recordsDestination.length == 0) {
+            const dataTo = createDataForStops(tData, 'to')
+            // console.log({dataTo});
+            recordTo = await pb.collection('stops').create(dataTo);
+            tripData.to = recordTo.id;
+            // console.log({recordTo});
+        } else
+            tripData.to = recordsDestination[0].id;
+
+        // console.log({recordsDestination},{recordsOrigin});
+
+
+    } catch (error) {
+        console.log(error);
+    }
+    let tripDuration = await utils.callMapsAPIForETA(tData.from, tData.to, tData.stops);
+
     tripData.tripDate = tData.tripDate;
     tripData.tripDescription = tData.tripDescription;
     tripData.vehicle = tData.vehicle;
     tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
-    tripData.stops = tData.stops;
+    tripData.stops = { "stops": tData.stops };
     tripData.bookingMinimumAmount = 25;
-    tripData.totalTripAmount = tData.totalTripAmount;
-    tripData.refreshments = tData.refreshments;
+    tripData.refreshments = tData.refreshments?tData.refreshments:false;
     tripData.recurring = tData.recurring;
     tripData.promoCodes = tData.promoCodes;
-    tripData.fares = tData.fares;
+    tripData.fares = { "fares": tData.fares };
     let vehicle;
-    if(tData.vehicle){
+    if (tData.vehicle) {
         vehicle = await pb.collection('vehicle').getOne(tData.vehicle);
     }
 
-    tripData.totalSeatsLeft = vehicle? vehicle.totalSeats: tData.totalSeatsLeft;
-    tripData.totalSeats = vehicle? vehicle.totalSeats: tData.totalSeats;
-
-    tripData.isReturnTrip = tData.isReturnTrip? tData.isReturnTrip: false;
-    tripData.returnTrip = returnTrip? returnTrip.id:  null;
+    tripData.totalSeatsLeft = vehicle ? vehicle.totalSeats : tData.totalSeatsLeft;
+    tripData.totalSeats = vehicle ? vehicle.totalSeats : tData.totalSeats;
+    tripData.isReturnTrip = tData.isReturnTrip ? Boolean(tData.isReturnTrip) : false;
+    tripData.returnTrip = returnTrip ? returnTrip.id : null;
     tripData.actualStartTime = tData.actualStartTime;
     tripData.actualEndTime = tData.actualEndTime;
-    tripData.requestedTrip = tData.requestedTrip;
+    tripData.requestedTrip = tData.requestedTrip ? Boolean(tData.requestedTrip) : false;
     tripData.requestingUser = tData.requestingUser;
+    tripData.duration = tripDuration;
     console.log("asdf");
     return tripData;
 }
 
-let filterFromAndTo = (trips, filter) => {
+
+
+const filterFromAndTo = (trips, filter) => {
     let finalTrips = [];
     trips.forEach(trip => {
         let finalStops = calculateFinalStops([trip.from, ...trip.stops, trip.to]);
@@ -92,7 +144,7 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3)+'&& isReturnTrip=false && requestedTrip=false && deleted=false';
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && requestedTrip=false && deleted=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
@@ -100,8 +152,9 @@ const filterToString = (filter) => {
 }
 
 router.post('/add', async (req, res) => {
+    console.log(req.body);
     let returnRecord;
-    if(req.body.returnTrip){
+    if (req.body.returnTrip && req.body.isReturnTrip) {
         let returnTrip = await createOrUpdatetripData(req.body.returnTrip, null);
         returnRecord = await pb.collection('trips').create(returnTrip);
     }
@@ -125,14 +178,51 @@ router.post('/add', async (req, res) => {
     // const result = await pb.collection('trips').listAuthMethods();
 
 })
+
+router.post('/someAddTest', async (req, res) => {
+
+    try {
+        let origin = null, destination = null;
+        console.log("this is gthe calls ")
+        origin = await pb.collection('stops').getList(0, 10, {
+            filter: `'place_id = ${tData.from.place_id}'`
+        });
+        destination = await pb.collection('stops').getList(0, 10, {
+            filter: `'place_id = ${tData.to.place_id}'`
+        });
+        console.log("calls are done  is gthe calls ")
+
+        console.log({ origin }, { destination });
+
+
+        // return res.send({
+        //     success: true,
+        //     result: record
+        // })
+    } catch (error) {
+        logger.error(error);
+        // return res.send({
+        //     success: false,
+        //     message:"error"
+        // })
+    }
+    // const result = await pb.collection('trips').listAuthMethods();
+
+})
+
+
+
+
+
+
 router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let returnRecord;
-    if(req.body.returnTrip){
+    if (req.body.returnTrip) {
         let mainTrip = await pb.collection('trips').getOne(params.id);
         returnTrip = await createOrUpdatetripData(req.body.returnTrip, null);
-        if(!mainTrip.returnTrip){
+        if (!mainTrip.returnTrip) {
             returnRecord = await pb.collection('trips').create(returnTrip);
         } else {
             returnRecord = await pb.collection('trips').update(mainTrip.returnTrip, returnTrip);
@@ -166,12 +256,14 @@ router.post('/all', async (req, res) => {
         Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false' });
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
+            expand: expandKeyNames.toString(), filter:
+                'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false'
+        });
         records = utils.cleanExpandData(records, expandKeys, true);
-        records.forEach(e=> {
-            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        records.forEach(e => {
+            e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
+            e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
         })
         return res.send({
             success: true,
@@ -201,9 +293,9 @@ router.post('/allFilter', async (req, res) => {
             filter: finalFilter,
             expand: expandKeyNames.toString()
         });
-        records.forEach(e=> {
-            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        records.forEach(e => {
+            e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
+            e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
         })
         console.log(records)
         if (fromToFilter.from.length > 0 && fromToFilter.to.length > 0) {
@@ -245,14 +337,14 @@ router.post('/:id', async (req, res) => {
         newRecords.push(records);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
         let trip = newRecords[0];
-        if(trip.returnTrip){
+        if (trip.returnTrip) {
             let returnRecords = await pb.collection('trips').getOne(trip.returnTrip, { expand: expandKeyNames.toString() });
             let newReturnRecords = [];
             newReturnRecords.push(returnRecords);
             newReturnRecords = utils.cleanExpandData(newReturnRecords, expandKeys, false);
-            newReturnRecords.forEach(e=> {
-                e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-                e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+            newReturnRecords.forEach(e => {
+                e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
+                e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
             })
             trip.returnTrip = newReturnRecords[0];
         } else {
@@ -276,10 +368,10 @@ router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
         let trip = await pb.collection('trips').getOne(params.id);
-        if(trip.returnTrip){
-            const recordsReturn = await pb.collection('trips').update(trip.returnTrip, {deleted: true});
+        if (trip.returnTrip) {
+            const recordsReturn = await pb.collection('trips').update(trip.returnTrip, { deleted: true });
         }
-        const records = await pb.collection('trips').update(params.id, {deleted: true});
+        const records = await pb.collection('trips').update(params.id, { deleted: true });
         return res.send({
             success: true,
             result: records
@@ -298,8 +390,8 @@ router.post('/deleteMultiple', async (req, res) => {
     try {
         const idArr = req.body.ids;
         let records;
-        idArr.map(async (id)=>{
-            records = await pb.collection('trips').update(id, {deleted: true});
+        idArr.map(async (id) => {
+            records = await pb.collection('trips').update(id, { deleted: true });
         })
         return res.send({
             success: true,

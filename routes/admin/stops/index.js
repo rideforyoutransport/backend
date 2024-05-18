@@ -69,7 +69,17 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const records = await pb.collection('stops').getFullList({filter: 'deleted=false'});
+
+         //      origin = await pb.collection('stops').getList(0,10,{
+    //         filter: `'place_id = ${tData.from.place_id}'`
+    //     });
+    //     destination = await pb.collection('stops').getList(0,10,{
+    //         filter: `'place_id = ${tData.to.place_id}'`
+    //     });
+    // console.log({origin},{destination});
+    const someVar = "ChIJL_P_CXMEDTkRw0ZdG-0GVvw";
+        const records = await pb.collection('stops').getFullList({filter: `deleted=false && place_id="${someVar}"`});
+        console.log(records);
         return res.send({
             success: true,
             result: records

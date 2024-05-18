@@ -94,39 +94,45 @@ let sendErrorMail = (error, source_file, source_function, details) => {
     emailService.send(email_details);
 }
 
-let callMapsAPIForETA = (from, to, stops) => {
+const  callMapsAPIForETA = async (from, to, stops) => {
 
-    let eta =null;
+    let eta =1;
 
-
+    console.log("queryParamsforMaps",createStringForStops(stops)+`${to.lat},${to.lng}`);
     axios({
         url: 'https://maps.googleapis.com/maps/api/distancematrix/json',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        data: {
-            'origins': encodeURIComponent(`${from.lat},${from.long}`),
+        params: {
+            'origins': (`${from.lat},${from.lng}`),
             "key": process.env.MAPS_KEY,
-            "destinations": encodeURIComponent(createStringForStops(stops)+`${to.lat},${to.long}`)
+            "destinations": (createStringForStops(stops)+`${to.lat},${to.lng}`)
         }
     })
-        .then(function (response) {
-            console.log(response.data)
-            eta= response.data.rows;
-            return eta
+        .then(async function (response) {
+            eta= response.data.rows;            
+            return calculateTotalDuration(eta[0].elements)
         })
         .catch(function (error) {
             console.log(error)
         })
+return eta;
+}
 
-
-    return eta;
+const calculateTotalDuration =  (eta) =>{
+    let duration=0;
+    eta.forEach(element => {
+        duration+=element.duration.value;
+    });
+    return duration;
 }
 
 const createStringForStops = (stops) => {
     let finalParam = ''
     stops.forEach(element => {
-        finalParam = finalParam + `${element.lat},${element.long}|`
+        finalParam = finalParam + `${element.lat},${element.lng}|`
     });
     // finalParam = finalParam.substring(0, finalParam.length - 1);
+    console.log({finalParam})
     return finalParam;
 }
 
@@ -139,5 +145,8 @@ module.exports = {
     asyncForEach,
     generateDynamicMailBody,
     getDayOfWeek,
-    cleanExpandData
+    cleanExpandData,
+    callMapsAPIForETA,
+ calculateTotalDuration
+
 }
