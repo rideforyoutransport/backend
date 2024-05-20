@@ -117,6 +117,37 @@ const  callMapsAPIForETA = async (from, to, stops) => {
         })
 return eta;
 }
+const  callMapsAPIForETAAll = async (stops) => {
+
+    let duration =0;
+    for  (let origin =0 ; origin <stops.length-1; origin++){
+        duration += await callMapsApi(stops[origin],stops[origin+1]);          
+    }
+
+console.log({duration})
+return duration;
+}
+async function callMapsApi( originEle, destinationEle) {
+
+return axios({
+        url: 'https://maps.googleapis.com/maps/api/distancematrix/json',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        params: {
+            'origins': (`${originEle.lat},${originEle.lng}`),
+            "key": process.env.MAPS_KEY,
+            "destinations": `${destinationEle.lat},${destinationEle.lng}`
+        }
+    })
+        .then(async function (response) {
+            let respRows = response.data.rows[0].elements;
+            console.log("this maps api ",parseInt(respRows[0].duration.value))
+            return parseInt(respRows[0].duration.value);
+        })
+        .catch(function (error) {
+            console.log(error)
+        })
+}
+
 
 const calculateTotalDuration =  (eta) =>{
     let duration=0;
@@ -147,6 +178,7 @@ module.exports = {
     getDayOfWeek,
     cleanExpandData,
     callMapsAPIForETA,
- calculateTotalDuration
+ calculateTotalDuration,
+ callMapsAPIForETAAll
 
 }

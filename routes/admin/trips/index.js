@@ -43,13 +43,39 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.totalTripAmount = parseFloat(totalTripAmount);
     tripData.vendor = tData.vendor;
     let recordsOrigin = null, recordsDestination = null, recordFrom = null, recordTo = null;
+    let allStops=tData.stops;
+    let allStopsIncFromTo = [];
+    allStopsIncFromTo.push(tData.from,tData.to,...allStops);
 
+
+
+    tripData.duration=await utils.callMapsAPIForETAAll(allStopsIncFromTo);
     try {
-
         let originPlaceId = tData.from.place_id;
         let destinationPlaceId = tData.to.place_id;
+        let stops=[];
         recordsOrigin = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${originPlaceId}"` });
         recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
+        for  (const ele of allStops){
+            console.log({ele});
+            let stopPlaceId=ele.place_id;
+            let recordStop = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${stopPlaceId}"` });
+
+            console.log({recordStop});
+            if(recordStop == null || recordStop.length ==0){
+                const newStop = {
+                    "place_id": ele.place_id,
+                    "name": ele.place_name,
+                    "geoLocation": { 'lat': ele.lat, 'lng': ele.lng },
+                    "deleted": false
+                };
+                let newAddedStop = await pb.collection('stops').create(newStop);
+                console.log({newAddedStop});
+                stops = [...stops,newAddedStop.id];
+            }else
+            stops = [...stops,recordStop[0].id];
+            tripData.stops=stops;
+        }
 
         console.log(recordsDestination.length > 0, recordsOrigin.length > 0)
         if (recordsOrigin == null || recordsOrigin.length == 0) {
@@ -77,14 +103,14 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     } catch (error) {
         console.log(error);
     }
-    let tripDuration = await utils.callMapsAPIForETA(tData.from, tData.to, tData.stops);
+    // let tripDuration = await utils.callMapsAPIForETA(tData.from, tData.to, tData.stops); // new fun call 
 
     tripData.tripDate = tData.tripDate;
     tripData.tripDescription = tData.tripDescription;
     tripData.vehicle = tData.vehicle;
     tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
-    tripData.stops = { "stops": tData.stops };
+    tripData.stopsDetailed = {"stops":tData.stops}
     tripData.bookingMinimumAmount = 25;
     tripData.refreshments = tData.refreshments?tData.refreshments:false;
     tripData.recurring = tData.recurring;
@@ -103,9 +129,12 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.actualEndTime = tData.actualEndTime;
     tripData.requestedTrip = tData.requestedTrip ? Boolean(tData.requestedTrip) : false;
     tripData.requestingUser = tData.requestingUser;
-    tripData.duration = tripDuration;
+    // tripData.duration = tripDuration;
     console.log("asdf");
+    console.log(tripData);
+
     return tripData;
+
 }
 
 
