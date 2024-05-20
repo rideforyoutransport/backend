@@ -21,7 +21,6 @@ const calculateTotalTripAmount = async (tData) => {
             amount = fare.fare;
         }
     });
-    // console.log("this is the amount ", amount )
     return amount;
 }
 
@@ -47,9 +46,14 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     let allStopsIncFromTo = [];
     allStopsIncFromTo.push(tData.from,tData.to,...allStops);
 
+    let mapsApiOp=await utils.callMapsAPIForETAAll(allStopsIncFromTo);
+    console.log({mapsApiOp});
 
+    tripData.duration = mapsApiOp.duration;
+  for(let itr =0;itr<allStops.length ;itr++){
+    allStops[itr].duration=mapsApiOp.durationArray[itr]; 
+  }
 
-    tripData.duration=await utils.callMapsAPIForETAAll(allStopsIncFromTo);
     try {
         let originPlaceId = tData.from.place_id;
         let destinationPlaceId = tData.to.place_id;

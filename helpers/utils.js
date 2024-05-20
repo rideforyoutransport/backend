@@ -119,13 +119,15 @@ return eta;
 }
 const  callMapsAPIForETAAll = async (stops) => {
 
-    let duration =0;
+    let duration =0,durationArray=[];
     for  (let origin =0 ; origin <stops.length-1; origin++){
-        duration += await callMapsApi(stops[origin],stops[origin+1]);          
+       let tempDuration=await callMapsApi(stops[origin],stops[origin+1]); 
+       duration += tempDuration
+        durationArray.push(tempDuration);         
     }
 
-console.log({duration})
-return duration;
+console.log({duration,durationArray})
+return {duration,durationArray};
 }
 async function callMapsApi( originEle, destinationEle) {
 
