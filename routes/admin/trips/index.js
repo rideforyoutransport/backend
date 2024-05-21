@@ -1,3 +1,4 @@
+const { duration } = require('moment');
 const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
@@ -42,31 +43,33 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.totalTripAmount = parseFloat(totalTripAmount);
     tripData.vendor = tData.vendor;
     let recordsOrigin = null, recordsDestination = null, recordFrom = null, recordTo = null;
-    let allStops=tData.stops;
+    let allStops = tData.stops;
     let allStopsIncFromTo = [];
-    allStopsIncFromTo.push(tData.from,tData.to,...allStops);
+    allStopsIncFromTo.push(tData.from, ...allStops, tData.to);
 
-    let mapsApiOp=await utils.callMapsAPIForETAAll(allStopsIncFromTo);
-    console.log({mapsApiOp});
+    let mapsApiOp = await utils.callMapsAPIForETAAll(allStopsIncFromTo);
+    console.log({ mapsApiOp });
 
     tripData.duration = mapsApiOp.duration;
-  for(let itr =0;itr<allStops.length ;itr++){
-    allStops[itr].duration=mapsApiOp.durationArray[itr]; 
-  }
+    for (let itr = 0; itr < allStops.length; itr++) {
+        allStops[itr].duration = mapsApiOp.durationArray[itr];
+    }
+
+    let stopsDetailed = [];
 
     try {
         let originPlaceId = tData.from.place_id;
         let destinationPlaceId = tData.to.place_id;
-        let stops=[];
+        let stops = [];
         recordsOrigin = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${originPlaceId}"` });
         recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
-        for  (const ele of allStops){
-            console.log({ele});
-            let stopPlaceId=ele.place_id;
+        for (const ele of allStops) {
+            console.log({ ele });
+            let stopPlaceId = ele.place_id;
             let recordStop = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${stopPlaceId}"` });
 
-            console.log({recordStop});
-            if(recordStop == null || recordStop.length ==0){
+            console.log({ recordStop });
+            if (recordStop == null || recordStop.length == 0) {
                 const newStop = {
                     "place_id": ele.place_id,
                     "name": ele.place_name,
@@ -74,11 +77,14 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
                     "deleted": false
                 };
                 let newAddedStop = await pb.collection('stops').create(newStop);
-                console.log({newAddedStop});
-                stops = [...stops,newAddedStop.id];
-            }else
-            stops = [...stops,recordStop[0].id];
-            tripData.stops=stops;
+                console.log({ newAddedStop });
+                stops = [...stops, newAddedStop.id];
+                stopsDetailed.push({id: newAddedStop.id, name: newAddedStop.name, place_id: newAddedStop.place_id, duration: ele.duration});
+            } else{
+                stops = [...stops, recordStop[0].id];
+                stopsDetailed.push({id: recordStop[0].id, name: recordStop[0].name, place_id: recordStop[0].place_id, duration: ele.duration});
+            }
+            tripData.stops = stops;
         }
 
         console.log(recordsDestination.length > 0, recordsOrigin.length > 0)
@@ -114,9 +120,9 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.vehicle = tData.vehicle;
     tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
-    tripData.stopsDetailed = {"stops":tData.stops}
+    tripData.stopsDetailed = stopsDetailed
     tripData.bookingMinimumAmount = 25;
-    tripData.refreshments = tData.refreshments?tData.refreshments:false;
+    tripData.refreshments = tData.refreshments ? tData.refreshments : false;
     tripData.recurring = tData.recurring;
     tripData.promoCodes = tData.promoCodes;
     tripData.fares = { "fares": tData.fares };
@@ -192,7 +198,7 @@ router.post('/add', async (req, res) => {
         returnRecord = await pb.collection('trips').create(returnTrip);
     }
     let trip = await createOrUpdatetripData(req.body, returnRecord);
-    console.log(trip);
+    console.log(trip.stops);
     try {
         const record = await pb.collection('trips').create(trip);
 
@@ -211,42 +217,6 @@ router.post('/add', async (req, res) => {
     // const result = await pb.collection('trips').listAuthMethods();
 
 })
-
-router.post('/someAddTest', async (req, res) => {
-
-    try {
-        let origin = null, destination = null;
-        console.log("this is gthe calls ")
-        origin = await pb.collection('stops').getList(0, 10, {
-            filter: `'place_id = ${tData.from.place_id}'`
-        });
-        destination = await pb.collection('stops').getList(0, 10, {
-            filter: `'place_id = ${tData.to.place_id}'`
-        });
-        console.log("calls are done  is gthe calls ")
-
-        console.log({ origin }, { destination });
-
-
-        // return res.send({
-        //     success: true,
-        //     result: record
-        // })
-    } catch (error) {
-        logger.error(error);
-        // return res.send({
-        //     success: false,
-        //     message:"error"
-        // })
-    }
-    // const result = await pb.collection('trips').listAuthMethods();
-
-})
-
-
-
-
-
 
 router.patch('/:id', async (req, res) => {
 
@@ -293,6 +263,7 @@ router.post('/all', async (req, res) => {
             expand: expandKeyNames.toString(), filter:
                 'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false'
         });
+        console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(e => {
             e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
@@ -427,7 +398,7 @@ router.post('/deleteMultiple', async (req, res) => {
         })
         return res.send({
             success: true,
-            result: {message: "Deleted successfully!"}
+            result: { message: "Deleted successfully!" }
         })
     } catch (error) {
         logger.error(error);

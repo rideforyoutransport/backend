@@ -1,0 +1,31 @@
+/// <reference path="../pb_data/types.d.ts" />
+migrate((db) => {
+  const dao = new Dao(db)
+  const collection = dao.findCollectionByNameOrId("3f7m9k4jqqz4q3i")
+
+  // add
+  collection.schema.addField(new SchemaField({
+    "system": false,
+    "id": "wmmr7wss",
+    "name": "duration",
+    "type": "number",
+    "required": false,
+    "presentable": false,
+    "unique": false,
+    "options": {
+      "min": null,
+      "max": null,
+      "noDecimal": false
+    }
+  }))
+
+  return dao.saveCollection(collection)
+}, (db) => {
+  const dao = new Dao(db)
+  const collection = dao.findCollectionByNameOrId("3f7m9k4jqqz4q3i")
+
+  // remove
+  collection.schema.removeField("wmmr7wss")
+
+  return dao.saveCollection(collection)
+})

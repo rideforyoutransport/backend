@@ -147,7 +147,7 @@ router.post('/:id', async (req, res) => {
         } else {
             trip.returnTrip = null;
         }
-        console.log(trip);
+        console.log(trip.stopsDetailed);
         return res.send({
             success: true,
             result: trip

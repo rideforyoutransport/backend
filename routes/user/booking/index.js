@@ -9,50 +9,27 @@ const pb = new PocketBase(pb_port);
 
 let bookingData = {};
 
-// const data = {
-//     "vendor": "RELATION_RECORD_ID",
-//     "trip": "RELATION_RECORD_ID",
-//     "user": "RELATION_RECORD_ID",
-//     "driver": "RELATION_RECORD_ID",
-//     "amountPaid": "test",
-//     "amountLeft": "test",
-//     "totalAmount": "test",
-//     "luggageTypeOpted": "s",
-//     "totalSeatsBooked": 123,
-//     "otherUsers": "JSON",
-//     "refreshmentsOpted": true,
-//     "bookingDate": "2022-01-01 10:00:00.123Z",
-//     "promoCode": "RELATION_RECORD_ID",
-//     "reciept": "https://example.com",
-//     "tipAmount": 123,
-//     "tipPaid": true,
-//     "status": "0",
-//     "from": "RELATION_RECORD_ID",
-//     "to": "RELATION_RECORD_ID"
-// };
-
-
 const createOrUpdatebookingData = (bData) => {
 
-    //bookingData.vendor=bData.vendor;
     bookingData.trip = bData.trip;
     bookingData.user = bData.user;
     bookingData.driver = bData.driver;
-    //bookingData.amountPaid=bData.amountPaid;
-    //bookingData.amountLeft=bData.amountLeft;
-    //bookingData.bookingDate=bData.bookingDate;
-    //bookingData.totalAmount=bData.totalAmount;
     bookingData.luggageTypeOpted = bData.luggageTypeOpted;
     bookingData.totalSeatsBooked = bData.totalSeatsBooked;
     bookingData.otherUsers = bData.otherUsers;
     bookingData.status = bData.status ? bData.status : 0;
+    bookingData.totalAmount = bData.totalAmount;
+    bookingData.amountPaid = bData.amountPaid;
+    bookingData.amountLeft = bData.amountLeft;
     //bookingData.promoCode=bData.promoCode?bData.promoCode:false;
     bookingData.reciept = bData.reciept;
     bookingData.tipPaid = bData.tipPaid ? bData.tipPaid : false;
     bookingData.tipAmount = bData.tipPaid ? bdata.tipAmount : 0;
     bookingData.from = bData.from;
     bookingData.to = bData.to;
+    bookingData.bookingDate = bData.bookingDate;
     bookingData.status = bData.status ? bData.status : 1
+    bookingData.duration = bData.duration;
 
     return bookingData;
 }
@@ -64,10 +41,6 @@ const getDataFromTrip = async (data) => {
     bookingData.vendor = record.vendor;
     bookingData.driver = record.driver;
     bookingData.vehicle = record.vehicle;
-    bookingData.amountPaid = (record.bookingMinimumAmount > 0 ? record.bookingMinimumAmount : 25) * bookingData.totalSeatsBooked;
-    bookingData.bookingDate = record.tripDate;
-    bookingData.totalAmount = record.totalTripAmount * bookingData.totalSeatsBooked;
-    bookingData.amountLeft = bookingData.totalAmount - bookingData.amountPaid;
     return data;
 }
 

@@ -21,11 +21,21 @@ const cleanExpandData = (data, keys, paginatedData) => {
 
 const createNewKeyObject = (data, keys_to_keep) => {
 
-    Object.keys(data).forEach((key) => {
-        if (!keys_to_keep.includes(key)) {
-            delete (data[key])
-        }
-    })
+    if(data instanceof Array){
+        data.forEach((d)=> {
+            Object.keys(d).forEach((key) => {
+                if (!keys_to_keep.includes(key)) {
+                    delete (d[key])
+                }
+            })
+        })
+    } else {
+        Object.keys(data).forEach((key) => {
+            if (!keys_to_keep.includes(key)) {
+                delete (data[key])
+            }
+        })
+    }
     return data;
 }
 let generateDynamicMailBody = (mail, details, is_subject) => {
