@@ -356,7 +356,7 @@ router.post('/allFilter', async (req, res) => {
     }
 })
 
-router.post('/:id', async (req, res) => {
+router.post('/details/:id', async (req, res) => {
     try {
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
@@ -421,20 +421,19 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/deleteMultiple', async (req, res) => {
     try {
-        const idArr = req.body.ids;
-        let records;
+        let idArr = req.body.ids;
         idArr.map(async (id) => {
-            records = await pb.collection('trips').update(id, { deleted: true });
+            await pb.collection('trips').update(id, { deleted: true });
         })
         return res.send({
             success: true,
-            result: records
+            result: {message: "Deleted successfully!"}
         })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error
         })
     }
 

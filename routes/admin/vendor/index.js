@@ -187,13 +187,12 @@ router.delete('/:id', async (req, res) => {
 router.post('/deleteMultiple', async (req, res) => {
     try {
         const idArr = req.body.ids;
-        let records;
         idArr.map(async (id)=>{
-            records = await pb.collection('vendor').update(id, {deleted: true});
+            await pb.collection('vendor').update(id, {deleted: true});
         })
         return res.send({
             success: true,
-            result: records
+            result: {message: "Deleted successfully!"}
         })
     } catch (error) {
         logger.error(error);
