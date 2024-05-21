@@ -282,6 +282,25 @@ router.post('/all', async (req, res) => {
     }
 })
 
+router.post('/requestedTrips', async (req, res) => {
+    try {
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
+            filter: 'requestedTrip=true && deleted=false'
+        });
+        console.log(records);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+})
+
 router.post('/allFilter', async (req, res) => {
 
     let fromToFilter = req.body.filter2;
