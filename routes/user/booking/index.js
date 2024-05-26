@@ -1,17 +1,8 @@
 const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
-<<<<<<< HEAD
 const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
-=======
 
-// const PocketBase = require('pocketbase/cjs')
-// var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
-// // const pb = new PocketBase(pb_port);
-
-const {pb} = require('../../../pocketbase/pocketbase.js');
-
->>>>>>> 4e8a47f ( users chats)
 
 let bookingData = {};
 
