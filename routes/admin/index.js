@@ -57,8 +57,6 @@ router.use('/user', require('./user'));
 router.use('/promoCode', require('./promoCode'));
 router.use('/stops', require('./stops'));
 router.use('/trips', require('./trips'));
-
-
-
+router.use('/requestedTrips', require('./requestedTrips'));
 
 module.exports = router;

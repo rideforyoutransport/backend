@@ -184,6 +184,7 @@ router.delete('/:id', async (req, res) => {
 
 router.use('/booking', require('./booking'));
 router.use('/trips', require('./trips'));
+router.use('/requestedTrips', require('./requestedTrips'));
 router.use('/stops', require('./stops'));
 
 

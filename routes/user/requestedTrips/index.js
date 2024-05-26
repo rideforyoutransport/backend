@@ -6,6 +6,8 @@ const PocketBase = require('pocketbase/cjs')
 var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
+let tripData = {};
+
 const createDataForStops = (data, obj) => {
 
 
@@ -55,6 +57,7 @@ const createOrUpdatetripData = async (tData) => {
     }
     tripData.requestDate = tData.requestDate;
     tripData.totalSeats = tData.totalSeats;
+    tripData.requestingUser = tData.user;
     console.log(tripData);
 
     return tripData;
@@ -69,7 +72,7 @@ router.post('/add', async (req, res) => {
 
         return res.send({
             success: true,
-            result: record
+            message: "Request Added!"
         })
 
     } catch (error) {
