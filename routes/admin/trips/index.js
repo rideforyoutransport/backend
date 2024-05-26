@@ -13,6 +13,7 @@ let tripData = {};
 const calculateTotalTripAmount = async (tData) => {
     let amount = 0
     const fares = tData.fares;
+    console.log(fares);
     fares.forEach(fare => {
         if (fare.from.place_id == tData.from.place_id && fare.to.place_id == tData.to.place_id) {
             amount = fare.fare;
