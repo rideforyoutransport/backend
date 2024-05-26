@@ -3,7 +3,15 @@ const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
 
+<<<<<<< HEAD
 const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
+=======
+// const PocketBase = require('pocketbase/cjs')
+// var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
+// const pb = new PocketBase(pb_port);
+const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
+
+>>>>>>> 4e8a47f ( users chats)
 
 let tripData = {};
 
@@ -132,6 +140,10 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.returnTrip = returnTrip ? returnTrip.id : null;
     tripData.actualStartTime = tData.actualStartTime;
     tripData.actualEndTime = tData.actualEndTime;
+    tripData.requestedTrip = tData.requestedTrip ? Boolean(tData.requestedTrip) : false;
+    tripData.requestingUser = tData.requestingUser;
+    // tripData.duration = tripDuration;
+    console.log("asdf");
     console.log(tripData);
 
     return tripData;
@@ -174,7 +186,7 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && deleted=false';
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && requestedTrip=false && deleted=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
@@ -184,7 +196,7 @@ const filterToString = (filter) => {
 router.post('/add', async (req, res) => {
     console.log(req.body);
     let returnRecord;
-    if (req.body.returnTrip) {
+    if (req.body.returnTrip && req.body.isReturnTrip) {
         let returnTrip = await createOrUpdatetripData(req.body.returnTrip, null);
         returnRecord = await pb.collection('trips').create(returnTrip);
     }
@@ -252,7 +264,7 @@ router.post('/all', async (req, res) => {
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                'totalSeatsLeft>0 && isReturnTrip=false && deleted=false'
+                'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false'
         });
         console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);
@@ -285,6 +297,25 @@ router.post('/all', async (req, res) => {
         return res.send({
             success: false,
             message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+        })
+    }
+})
+
+router.post('/requestedTrips', async (req, res) => {
+    try {
+        let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
+            filter: 'requestedTrip=true && deleted=false'
+        });
+        console.log(records);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
         })
     }
 })
