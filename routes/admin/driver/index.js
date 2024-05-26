@@ -2,9 +2,10 @@ const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
 
-const PocketBase = require('pocketbase/cjs')
-var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
-const pb = new PocketBase(pb_port);
+// const PocketBase = require('pocketbase/cjs')
+// var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
+// const pb = new PocketBase(pb_port);
+const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
 
 
 let driverData = {};
@@ -115,6 +116,7 @@ router.post('/all', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
+        console.log( pb_authStore);
         const params = Object.assign({}, req.params);
         const records = await pb.collection('driver').getOne(params.id);
         return res.send({
