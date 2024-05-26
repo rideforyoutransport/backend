@@ -7,10 +7,6 @@ const PocketBase = require('pocketbase/cjs')
 var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
 const pb = new PocketBase(pb_port);
 
-
-
-
-
 let tripData = {};
 
 
@@ -137,10 +133,6 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.returnTrip = returnTrip ? returnTrip.id : null;
     tripData.actualStartTime = tData.actualStartTime;
     tripData.actualEndTime = tData.actualEndTime;
-    tripData.requestedTrip = tData.requestedTrip ? Boolean(tData.requestedTrip) : false;
-    tripData.requestingUser = tData.requestingUser;
-    // tripData.duration = tripDuration;
-    console.log("asdf");
     console.log(tripData);
 
     return tripData;
@@ -183,7 +175,7 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && requestedTrip=false && deleted=false';
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && deleted=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
@@ -261,7 +253,7 @@ router.post('/all', async (req, res) => {
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false'
+                'totalSeatsLeft>0 && isReturnTrip=false && deleted=false'
         });
         console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);
@@ -269,25 +261,6 @@ router.post('/all', async (req, res) => {
             e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
             e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
         })
-        return res.send({
-            success: true,
-            result: records
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response.message
-        })
-    }
-})
-
-router.post('/requestedTrips', async (req, res) => {
-    try {
-        let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
-            filter: 'requestedTrip=true && deleted=false'
-        });
-        console.log(records);
         return res.send({
             success: true,
             result: records
