@@ -2,9 +2,12 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const PocketBase = require('pocketbase/cjs')
-var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
-const pb = new PocketBase(pb_port);
+// const PocketBase = require('pocketbase/cjs')
+// var pb_port = process.env.PB_PORT || 'http://127.0.0.1:8090';
+// const pb = new PocketBase(pb_port);
+
+const {pb,pb_authStore}  = require('../../pocketbase/pocketbase.js');
+
 
 
 let driverData = {};
@@ -50,6 +53,25 @@ router.post('/login', async (req, res) => {
     }
 
 })
+router.post('/logout', async (req, res) => {
+
+    try {
+        pb.authStore.clear();
+        return res.send({
+            success: true,
+            result: "Logged Out Succesfully "
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error
+        })
+    }
+
+})
+
 
 // verify email via the auth token , not 6digit code 
 router.post('/verify', async (req, res) => {
@@ -273,6 +295,103 @@ router.delete('/:id', async (req, res) => {
     }
 
 })
+
+
+router.get('/message/:id', async (req, res) => {
+    try {
+        const params = Object.assign({}, req.params);
+        const records = await pb.collection('chats').getOne(params.id);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
+
+router.get('/message', async (req, res) => {
+    try {
+        // const params = Object.assign({}, req.params);
+        const records = await pb.collection('chats').getFullList();
+        console.log(records);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
+router.post('/chats', async (req, res) => {
+    try {
+
+        // recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
+
+        const reqBody = Object.assign({}, req.body);
+        console.log({reqBody})
+        let filter ='';
+        if(reqBody.trip &&  reqBody.trip!=''){
+            filter=filter+ `trip="${reqBody.trip}"`;
+        }
+        if(reqBody.booking &&  reqBody.booking!='' && reqBody.trip && reqBody.trip!='' ){
+            filter=filter+ ` && booking="${reqBody.booking}"`;
+
+        }else if(reqBody.booking){
+            filter=filter+ `booking="${reqBody.booking}"`;
+        }
+        if(reqBody.user &&  reqBody.user!='' && reqBody.booking &&reqBody.booking!=''){
+            filter=filter+ ` && user="${reqBody.user}"`;
+        }else if(reqBody.user){
+            filter=filter+ `user="${reqBody.user}"`;
+        }
+        console.log({filter});
+        const records = await pb.collection('chats').getFullList({ filter: filter });
+        console.log(records);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: "thithjhjk"
+        })
+    }
+
+})
+
+router.post('/message', async (req, res) => {
+    try {
+        let data = req.body;
+        // const params = Object.assign({}, req.params);
+        let records = await pb.collection('chats').create(data);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error
+        })
+    }
+
+})
+
+
 
 module.exports = router;
 
