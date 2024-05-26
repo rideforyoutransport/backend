@@ -17,7 +17,6 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.luggageTypeOpted = bData.luggageTypeOpted;
     bookingData.totalSeatsBooked = bData.totalSeatsBooked;
     bookingData.otherUsers = bData.otherUsers;
-    bookingData.status = bData.status ? bData.status : 0;
     bookingData.totalAmount = bData.totalAmount;
     bookingData.amountPaid = bData.amountPaid;
     bookingData.amountLeft = bData.amountLeft;
@@ -28,7 +27,7 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.from = bData.from;
     bookingData.to = bData.to;
     bookingData.bookingDate = bData.bookingDate;
-    bookingData.status = bData.status ? bData.status : 1
+    bookingData.status = bData.status
     bookingData.duration = bData.duration;
 
     return bookingData;
@@ -82,8 +81,10 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let bookings = createOrUpdatebookingData(req.body);
+    console.log(bookings);
     try {
         const record = await pb.collection('bookings').update(params.id, bookings);
+        console.log(record);
 
         return res.send({
             success: true,

@@ -153,22 +153,79 @@ router.post('/allTrips', async (req, res) => {
             e["vehicle"] = e["vehicle"]? e["vehicle"]: null
             e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
         })
-        for(let i = 0; i< trips.length; i++){
-            let trip = trips[i];
-            let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {filter: "trip=\""+`${trip.id}`+"\"" });
-            bookings = utils.cleanExpandData(bookings, [], true);
-            bookings.forEach(booking=>{
-                let details = booking.otherUsers["details"];
-                booking.otherUsers["details"] = JSON.parse(details);
-                return booking;
-            })
-            trip.bookings = bookings;
-
-        }
+        // if(trips.length>0){
+        //     trips.forEach(e=> {
+        //         e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+        //         e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        //     })
+        //     for(let i = 0; i< trips.length; i++){
+        //         let trip = trips[i];
+        //         let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {filter: "trip=\""+`${trip.id}`+"\"" });
+        //         bookings = utils.cleanExpandData(bookings, [], true);
+        //         let tempBookings = [];
+        //         bookings.forEach(booking=>{
+        //             let details = booking.otherUsers["details"];
+        //             booking.otherUsers["details"] = JSON.parse(details);
+        //             return booking;
+        //         })
+        //         trip.bookings = bookings;
+    
+        //     }
+        // }
 
         return res.send({
             success: true,
             result: trips
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response.message
+        })
+    }
+
+})
+
+router.post('/trip/:id', async (req, res) => {
+    try {
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        })
+
+        const params = Object.assign({}, req.params);
+        let records = await pb.collection('trips').getOne(params.id, { expand: expandKeyNames.toString() });
+        let newRecords = [];
+        newRecords.push(records);
+        newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
+        let trip = newRecords[0];
+        trip["vehicle"] = trip["vehicle"]? trip["vehicle"]: null;
+        trip["returnTrip"] = trip["returnTrip"]? trip["returnTrip"]: null;
+        let expandNames = ["from", "to"];
+        let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {expand: expandNames.toString(), filter: "trip=\""+`${trip.id}`+"\"" });
+        let expandKeysBookings = {
+            from: ["name", "id", "place_id"],
+            to: ["name", "id", "place_id"]
+        };
+        bookings = utils.cleanExpandData(bookings, expandKeysBookings, true);
+        let keys = ["amountLeft", "amountPaid", "bookingDate", "created", "deleted", "from", "id", "luggageTypeOpted", "otherUsers", "refreshmentsOpted", "status", "tipAmount", "tipPaid", "to", "totalAmount", "totalSeatsBooked", "user"];
+        bookings.forEach(booking=>{
+            let details = booking.otherUsers["details"];
+            booking.otherUsers["details"] = JSON.parse(details);
+            Object.keys(booking).forEach(key => {
+                if(!keys.includes(key)){
+                    delete booking[key];
+                }
+            });
+            return booking;
+        })
+        trip.bookings = bookings;
+        
+        return res.send({
+            success: true,
+            result: trip
         })
     } catch (error) {
         logger.error(error);

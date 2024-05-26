@@ -6,15 +6,17 @@ const cleanExpandData = (data, keys, paginatedData) => {
     if (paginatedData) {
         data = data.items;
     }
-    data.forEach(element => {
-        let expandObject = element.expand
-        delete element.expand;
-        Object.keys(expandObject).forEach(key => {
-            delete element[key];
-            element[key] = createNewKeyObject(expandObject[key], keys[key] != null && keys[key].length > 0 ? keys[key] : ["id", "name"]);
+    if(data.length> 0 && data[0].expand){
+        data.forEach(element => {
+            let expandObject = element.expand
+            delete element.expand;
+            Object.keys(expandObject).forEach(key => {
+                delete element[key];
+                element[key] = createNewKeyObject(expandObject[key], keys[key] != null && keys[key].length > 0 ? keys[key] : ["id", "name"]);
+            });
+    
         });
-
-    });
+    }
 
     return data;
 }
