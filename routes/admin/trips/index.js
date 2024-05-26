@@ -256,10 +256,26 @@ router.post('/all', async (req, res) => {
         });
         console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);
-        records.forEach(e => {
-            e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
-            e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
-        })
+        for(let i = 0; i<records.length; i++){
+            let trip = records[i];
+            trip["vehicle"] = trip["vehicle"] ? trip["vehicle"] : null
+            console.log(trip.returnTrip);
+            if(trip.returnTrip && trip.returnTrip!= ''){
+                let returnRecords = await pb.collection('trips').getOne(trip.returnTrip, { expand: expandKeyNames.toString() });
+                console.log(returnRecords);
+                let newReturnRecords = [];
+                newReturnRecords.push(returnRecords);
+                newReturnRecords = utils.cleanExpandData(newReturnRecords, expandKeys, false);
+                newReturnRecords.forEach(e=> {
+                    e["vehicle"] = e["vehicle"]? e["vehicle"]: null
+                    e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+                })
+                trip.returnTrip = newReturnRecords[0];
+            } else {
+                trip.returnTrip = null;
+            }
+        }
+        
         return res.send({
             success: true,
             result: records
