@@ -26,9 +26,15 @@
             "hash": "ecee73f10b0a9f8d6292792cad96a60cd9fa7fb4e90a54e6b01429bf0cf8a2c8"
         },
         {
+<<<<<<< HEAD
             "date": 1716770879131,
             "name": "stdout.log..2024-05-27",
             "hash": "c4ff7f49c26fbec10c685d8255153bbd769658f9ac7f9e4e9f1e4c60420b6a37"
+=======
+            "date": 1716748687689,
+            "name": "stdout.log..2024-05-27",
+            "hash": "1dc1fa650c7daf5fcfb46e9aa3de5de6f13b38976b188221d4baa9f4590f7eac"
+>>>>>>> 111332f ( user chats)
         }
     ],
     "hashType": "sha256"

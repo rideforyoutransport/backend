@@ -2,6 +2,7 @@ const PocketBase = require('pocketbase/cjs');
 const pb_port = normalizePort(process.env.PB_PORT || 'http://127.0.0.1:8090');
 const pb = new PocketBase(pb_port);
 const pb_authStore = pb.authStore
+const currentUser = pb.authStore.model;
 
 
 const confirmVerification = async (collection, token, refresh) => {
@@ -41,5 +42,6 @@ module.exports = {
   pb,
   confirmVerification,
   clearAuth,
-  pb_authStore
+  pb_authStore,
+  currentUser
 }

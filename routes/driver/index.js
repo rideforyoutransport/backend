@@ -2,7 +2,7 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const {pb,pb_authStore}  = require('../../pocketbase/pocketbase.js');
+const {pb,pb_authStore,currentUser}  = require('../../pocketbase/pocketbase.js');
 
 
 
@@ -33,8 +33,9 @@ router.post('/login', async (req, res) => {
 
     try {
         const adminData = await pb.collection('driver').authWithPassword(req.body.email, req.body.password);
-        console.log(adminData);
+        // console.log(adminData);
 
+<<<<<<< HEAD
         if(adminData.record.verified){
             return res.send({
                 success: true,
@@ -47,6 +48,14 @@ router.post('/login', async (req, res) => {
                 message: "Email Verification Required!"
             })
         }
+=======
+        console.log("current user ",(pb_authStore.baseModel));
+        return res.send({
+            success: true,
+            result: { id: adminData.record.id, token: adminData.token }
+        })
+
+>>>>>>> 111332f ( user chats)
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -59,6 +68,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', async (req, res) => {
 
     try {
+        console.log(pb_authStore,"this is the user");
         pb.authStore.clear();
         return res.send({
             success: true,
@@ -138,6 +148,8 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
+        console.log("current user from all users req ",(pb_authStore.baseModel));
+
         const records = await pb.collection('driver').getList(req.body.from, req.body.to);
 
         return res.send({
@@ -299,6 +311,85 @@ router.get('/allChats', async (req, res) => {
     }
 
 })
+<<<<<<< HEAD
+=======
+router.post('/chats', async (req, res) => {
+    try {
+
+        // recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
+
+        const reqBody = Object.assign({}, req.body);
+        console.log({reqBody})
+        let filter ='';
+        if(reqBody.trip &&  reqBody.trip!=''){
+            filter=filter+ `trip="${reqBody.trip}"`;
+        }
+        if(reqBody.booking &&  reqBody.booking!='' && reqBody.trip && reqBody.trip!='' ){
+            filter=filter+ ` && booking="${reqBody.booking}"`;
+
+        }else if(reqBody.booking){
+            filter=filter+ `booking="${reqBody.booking}"`;
+        }
+        if(reqBody.user &&  reqBody.user!='' && reqBody.booking &&reqBody.booking!=''){
+            filter=filter+ ` && user="${reqBody.user}"`;
+        }else if(reqBody.user){
+            filter=filter+ `user="${reqBody.user}"`;
+        }
+        console.log({filter});
+        const records = await pb.collection('chats').getFullList({ filter: filter });
+        console.log(records);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: "thithjhjk"
+        })
+    }
+
+})
+
+router.post('/message', async (req, res) => {
+    try {
+        let data = req.body;
+        // const params = Object.assign({}, req.params);
+        let records = await pb.collection('chats').create(data);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error
+        })
+    }
+
+})
+router.patch('/chat/:id', async (req, res) => {
+    try {
+        let data = req.body;
+        // const params = Object.assign({}, req.params);
+        const record = await pb.collection('users').update(params.id, user);
+        return res.send({
+            success: true,
+            result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error
+        })
+    }
+
+})
+
+>>>>>>> 111332f ( user chats)
 
 
 module.exports = router;
