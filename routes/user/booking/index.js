@@ -6,7 +6,7 @@ const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
 
 let bookingData = {};
 
-const createOrUpdatebookingData = (bData) => {
+const createOrUpdatebookingData = async (bData) => {
 
     bookingData.trip = bData.trip;
     bookingData.user = bData.user;
@@ -28,18 +28,19 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.duration = bData.duration;
     bookingData.rating = bData.rating;
     bookingData.review = bData.review;
-
     return bookingData;
 }
 
 
 const getDataFromTrip = async (data) => {
-
     let record = await pb.collection('trips').getOne(data.trip);
-    bookingData.vendor = record.vendor;
+    bookingData.vendor = record.vendor[0];
     bookingData.driver = record.driver;
     bookingData.vehicle = record.vehicle;
+    bookingData.from = record.from;
+    bookingData.to = record.to;
     return data;
+
 }
 
 router.post('/add', async (req, res) => {
@@ -50,10 +51,20 @@ router.post('/add', async (req, res) => {
         let data = await getDataFromTrip(bData);
         let trip = await pb.collection('trips').getOne(data.trip);
         if(bData.totalSeatsBooked <= trip.totalSeatsLeft){
-            trip.totalSeatsLeft =  trip.totalSeatsLeft - bData.totalSeatsBooked;
+            trip.totalSeatsLeft =  trip.totalSeatsLeft  - bData.totalSeatsBooked ;
             await pb.collection('trips').update(trip.id, trip);
-            await pb.collection('bookings').create(data);
+            const bookingResp= await pb.collection('bookings').create(data);
 
+            console.log("chat session call" , bookingResp);
+             
+           let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"` , sort: '-updated', });
+            if(chatSession.length>0 && chatSession[0].booking==''){
+                chatSession[0].booking=bookingResp.id;
+                console.log(chatSession[0],"this is the chat sessopm");
+                let respChats = await pb.collection('chats').update(chatSession[0].id, chatSession[0]);
+                console.log("thi sis teh response ",respChats);
+                // await pb.collection('chats').update(chatSession[0].id));
+            }
             return res.send({
                 success: true,
                 message: "Booking confirmed!"
@@ -61,7 +72,7 @@ router.post('/add', async (req, res) => {
         } else {
             return res.send({
                 success: false,
-                message: "Not enough seats left!"
+                message: "Not enough seats left! dfdf"
             })
         }
 

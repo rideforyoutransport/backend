@@ -73,7 +73,10 @@ router.post('/add', async (req, res) => {
 
     let bData = await createOrUpdatebookingData(req.body);
     try {
+        let chatSession = await pb.collection('chats').getList({filter:`trip="${bData.trip}" && user=${bData.user}`})
+        console.log(chatSession);
 
+        
         let data = await getDataFromTrip(bData);
         let trip = await pb.collection('trips').getOne(data.trip);
         if(bData.totalSeatsBooked <= trip.totalSeatsLeft){
