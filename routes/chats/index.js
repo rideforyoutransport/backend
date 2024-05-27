@@ -74,7 +74,7 @@ router.post('/createChat', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
