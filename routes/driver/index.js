@@ -178,25 +178,6 @@ router.post('/allTrips', async (req, res) => {
             e["vehicle"] = e["vehicle"]? e["vehicle"]: null
             e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
         })
-        // if(trips.length>0){
-        //     trips.forEach(e=> {
-        //         e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-        //         e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
-        //     })
-        //     for(let i = 0; i< trips.length; i++){
-        //         let trip = trips[i];
-        //         let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {filter: "trip=\""+`${trip.id}`+"\"" });
-        //         bookings = utils.cleanExpandData(bookings, [], true);
-        //         let tempBookings = [];
-        //         bookings.forEach(booking=>{
-        //             let details = booking.otherUsers["details"];
-        //             booking.otherUsers["details"] = JSON.parse(details);
-        //             return booking;
-        //         })
-        //         trip.bookings = bookings;
-    
-        //     }
-        // }
 
         return res.send({
             success: true,
@@ -299,29 +280,11 @@ router.delete('/:id', async (req, res) => {
 
 })
 
-
-router.get('/message/:id', async (req, res) => {
-    try {
-        const params = Object.assign({}, req.params);
-        const records = await pb.collection('chats').getOne(params.id);
-        return res.send({
-            success: true,
-            result: records
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
-        })
-    }
-
-})
-
-router.get('/message', async (req, res) => {
+router.get('/allChats', async (req, res) => {
     try {
         // const params = Object.assign({}, req.params);
-        const records = await pb.collection('chats').getFullList();
+        let filter= `driver="${reqBody.driver}"`;
+        const records = await pb.collection('chats').getFullList({filter: filter});
         console.log(records);
         return res.send({
             success: true,
@@ -336,64 +299,6 @@ router.get('/message', async (req, res) => {
     }
 
 })
-router.post('/chats', async (req, res) => {
-    try {
-
-        // recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
-
-        const reqBody = Object.assign({}, req.body);
-        console.log({reqBody})
-        let filter ='';
-        if(reqBody.trip &&  reqBody.trip!=''){
-            filter=filter+ `trip="${reqBody.trip}"`;
-        }
-        if(reqBody.booking &&  reqBody.booking!='' && reqBody.trip && reqBody.trip!='' ){
-            filter=filter+ ` && booking="${reqBody.booking}"`;
-
-        }else if(reqBody.booking){
-            filter=filter+ `booking="${reqBody.booking}"`;
-        }
-        if(reqBody.user &&  reqBody.user!='' && reqBody.booking &&reqBody.booking!=''){
-            filter=filter+ ` && user="${reqBody.user}"`;
-        }else if(reqBody.user){
-            filter=filter+ `user="${reqBody.user}"`;
-        }
-        console.log({filter});
-        const records = await pb.collection('chats').getFullList({ filter: filter });
-        console.log(records);
-        return res.send({
-            success: true,
-            result: records
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: "thithjhjk"
-        })
-    }
-
-})
-
-router.post('/message', async (req, res) => {
-    try {
-        let data = req.body;
-        // const params = Object.assign({}, req.params);
-        let records = await pb.collection('chats').create(data);
-        return res.send({
-            success: true,
-            result: records
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error
-        })
-    }
-
-})
-
 
 
 module.exports = router;
