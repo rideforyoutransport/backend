@@ -96,7 +96,7 @@ router.post('/add', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -119,7 +119,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -163,7 +163,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -196,7 +196,7 @@ router.post('/details/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -214,7 +214,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -234,7 +234,7 @@ router.post('/deleteMultiple', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 

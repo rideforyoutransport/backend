@@ -36,7 +36,7 @@ router.post('/resetPassword', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 })
@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
     // const result = await pb.collection('users').listAuthMethods();
@@ -83,7 +83,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
     // const result = await pb.collection('users').listAuthMethods();
@@ -101,7 +101,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -119,7 +119,7 @@ router.get('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -137,7 +137,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -155,13 +155,13 @@ router.post('/deleteMultiple', async (req, res) => {
         })
         return res.send({
             success: true,
-            result: {message: "Deleted successfully!"}
+            message: "Deleted successfully!"
         })
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 

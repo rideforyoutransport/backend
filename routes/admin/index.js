@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -32,14 +32,14 @@ router.post('/resetPassword', async (req, res) => {
         await pb.collection('admin').requestPasswordReset(req.body.email);
         return res.send({
             success: true,
-            result: "Please Open your email and Click on verify"
+            message: "Please Open your email and Click on verify"
         })
 
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 })

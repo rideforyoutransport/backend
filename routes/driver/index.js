@@ -35,16 +35,23 @@ router.post('/login', async (req, res) => {
         const adminData = await pb.collection('driver').authWithPassword(req.body.email, req.body.password);
         console.log(adminData);
 
-        return res.send({
-            success: true,
-            result: { id: adminData.record.id, token: adminData.token }
-        })
-
+        if(adminData.record.verified){
+            return res.send({
+                success: true,
+                result: { id: adminData.record.id, token: adminData.token }
+            })
+        } else {
+            return res.send({
+                success: false,
+                verified: 0,
+                message: "Email Verification Required!"
+            })
+        }
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -55,7 +62,7 @@ router.post('/logout', async (req, res) => {
         pb.authStore.clear();
         return res.send({
             success: true,
-            result: "Logged Out Succesfully "
+            message: "Logged Out Succesfully "
         })
 
     } catch (error) {
@@ -75,14 +82,14 @@ router.post('/verify', async (req, res) => {
         await pb.collection('driver').requestVerification(req.body.email);
         return res.send({
             success: true,
-            result: "Please Open your email and Click on verify"
+            message: "Please Open your email and Click on verify"
         })
 
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 })
@@ -92,14 +99,14 @@ router.post('/resetPassword', async (req, res) => {
         await pb.collection('driver').requestPasswordReset(req.body.email);
         return res.send({
             success: true,
-            result: "Please Open your email and Click on verify"
+            message: "Please Open your email and Click on verify"
         })
 
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 })
@@ -122,7 +129,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
     // const result = await pb.collection('driver').listAuthMethods();
@@ -141,7 +148,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -199,7 +206,7 @@ router.post('/allTrips', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -249,7 +256,7 @@ router.post('/trip/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -268,7 +275,7 @@ router.get('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -286,7 +293,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -305,7 +312,7 @@ router.get('/message/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
@@ -324,7 +331,7 @@ router.get('/message', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response.message
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
         })
     }
 
