@@ -228,7 +228,7 @@ router.post('/deleteMultiple', async (req, res) => {
         })
         return res.send({
             success: true,
-            result: {message: "Deleted successfully!"}
+            message: "Deleted successfully!"
         })
     } catch (error) {
         logger.error(error);
