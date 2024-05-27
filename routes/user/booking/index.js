@@ -25,6 +25,8 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.bookingDate = bData.bookingDate;
     bookingData.status = bData.status
     bookingData.duration = bData.duration;
+    bookingData.rating = bData.rating;
+    bookingData.review = bData.review;
 
     return bookingData;
 }
@@ -84,7 +86,7 @@ router.patch('/:id', async (req, res) => {
 
         return res.send({
             success: true,
-            result: record
+            message: "Record updated!"
         })
 
     } catch (error) {

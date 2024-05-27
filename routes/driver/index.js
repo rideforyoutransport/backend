@@ -228,7 +228,7 @@ router.post('/trip/:id', async (req, res) => {
             to: ["name", "id", "place_id"]
         };
         bookings = utils.cleanExpandData(bookings, expandKeysBookings, true);
-        let keys = ["amountLeft", "amountPaid", "bookingDate", "created", "deleted", "from", "id", "luggageTypeOpted", "otherUsers", "refreshmentsOpted", "status", "tipAmount", "tipPaid", "to", "totalAmount", "totalSeatsBooked", "user"];
+        let keys = ["amountLeft", "amountPaid", "bookingDate", "created", "deleted", "from", "id", "luggageTypeOpted", "otherUsers", "refreshmentsOpted", "status", "tipAmount", "tipPaid", "to", "totalAmount", "totalSeatsBooked", "user", "rating", "review"];
         bookings.forEach(booking=>{
             let details = booking.otherUsers["details"];
             booking.otherUsers["details"] = JSON.parse(details);

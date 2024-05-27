@@ -114,7 +114,7 @@ router.patch('/:id', async (req, res) => {
 
         return res.send({
             success: true,
-            result: record
+            message: "Details updated!"
         })
 
     } catch (error) {
