@@ -20,35 +20,39 @@ const createFilterForChats = (reqBody) => {
     } else if (reqBody.booking) {
         filter = filter + `booking="${reqBody.booking}"`;
     }
-    if (reqBody.user && reqBody.user != '' && reqBody.booking && reqBody.booking != '') {
+    if (reqBody.user) {
         filter = filter + ` && user="${reqBody.user}"`;
-    } else if (reqBody.user) {
-        filter = filter + `user="${reqBody.user}"`;
     }
     return filter;
 }
 
 let createOrUpdateChatData = async (cData, id) => {
-    chatData.user = cData.user;
-    chatData.booking = cData.booking;
-    chatData.trip = cData.trip;
-    chatData.driver = cData.driver;
-    // let filter = createFilterForChats(cData);
     let oldChatMessages = await pb.collection('chats').getOne(id);
-    let oldMessages = [...oldChatMessages.messages.chats];
-    oldMessages.push(cData.messages);
-    chatData.messages = { "chats": oldMessages };
+    chatData.messages = [...oldChatMessages.messages, cData];
     return chatData;
 };
 
 
-router.get('/:id', async (req, res) => {
+router.post('/getChatData/:id', async (req, res) => {
     try {
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        })
+
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('chats').getOne(params.id);
+        const records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
+        let newRecords = [];
+        newRecords.push(records);
+        newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
+        let record = newRecords[0];
+        if(record.booking == ""){
+            record.booking = null;
+        }
         return res.send({
             success: true,
-            result: records
+            result: record
         })
     } catch (error) {
         logger.error(error);
@@ -68,7 +72,7 @@ router.post('/createChat', async (req, res) => {
         let records = await pb.collection('chats').create(data);
         return res.send({
             success: true,
-            result: records
+            result: records.id
         })
     } catch (error) {
         logger.error(error);
@@ -81,18 +85,38 @@ router.post('/createChat', async (req, res) => {
 })
 
 
-router.post('/getChats', async (req, res) => {
+router.post('/getChat', async (req, res) => {
     try {
-
-        // recordsDestination = await pb.collection('stops').getFullList({ filter: `deleted=false && place_id="${destinationPlaceId}"` });
+        console.log(req);
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        })
 
         const reqBody = Object.assign({}, req.body);
+        console.log(reqBody);
+
         let filter = createFilterForChats(reqBody);
-        const records = await pb.collection('chats').getFullList({ filter: filter });
-        return res.send({
-            success: true,
-            result: records
-        })
+        console.log(filter);
+        let records = await pb.collection('chats').getFullList({ filter: filter, expand: expandKeyNames.toString() });
+        if(records && records.length > 0){
+            records = utils.cleanExpandData(records, expandKeys, false);
+            let chat = records[0];
+            if(chat.booking == ""){
+                chat.booking = null;
+            }
+            return res.send({
+                success: true,
+                result: chat
+            })
+        } else {
+            return res.send({
+                success: true,
+                result: null,
+                message: "No record found!"
+            })
+        }
     } catch (error) {
         logger.error(error);
         return res.send({
@@ -103,24 +127,6 @@ router.post('/getChats', async (req, res) => {
 
 })
 
-router.post('/message', async (req, res) => {
-    try {
-        let data = req.body;
-        // const params = Object.assign({}, req.params);
-        let records = await pb.collection('chats').create(data);
-        return res.send({
-            success: true,
-            result: records
-        })
-    } catch (error) {
-        logger.error(error);
-        return res.send({
-            success: false,
-            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
-        })
-    }
-
-})
 router.patch('/chat/:id', async (req, res) => {
     try {
         let data = req.body;
@@ -129,7 +135,7 @@ router.patch('/chat/:id', async (req, res) => {
         const record = await pb.collection('chats').update(params.id, cData);
         return res.send({
             success: true,
-            result: record
+            message: "Message Sent!"
         })
     } catch (error) {
         logger.error(error);

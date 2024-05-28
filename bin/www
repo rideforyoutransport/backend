@@ -53,8 +53,8 @@ const io = require('socket.io')(server, {
   console.log("New client connected");
 
   await pb.collection('chats').subscribe('*', function(e){
-    console.log("this is inside ",e.record,e.action);
-    socket.emit("chatsAPI", e.record);
+    console.log("this is inside ",e.record.messages,e.action);
+    socket.emit("chatsAPI", e.record.messages);
   });
 
   io.on("disconnect", () => {
