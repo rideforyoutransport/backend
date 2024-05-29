@@ -6,6 +6,7 @@ router.use('/user', require('./user'));
 router.use('/driver', require('./driver'));
 router.use('/vendor', require('./vendor'));
 router.use('/chats', require('./chats'));
+router.use('/pay', require('./pay'));
 
 
 
