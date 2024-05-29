@@ -18,15 +18,7 @@
   
  var server_port = normalizePort(process.env.SERVER_PORT || '3003');
  app.set('port', server_port);
- 
-
-
-// start pocketbase 
-// const PocketBase = require('pocketbase/cjs');
-// const pb = new PocketBase(pb_port);
-// var pb_port =  normalizePort(process.env.PB_PORT || '8090');
-
-const {pb,pb_authStore}  = require('../pocketbase/pocketbase.js');
+const {pb}  = require('../pocketbase/pocketbase.js');
 
 
 
