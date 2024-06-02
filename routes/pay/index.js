@@ -20,10 +20,18 @@ router.post("/orders", async (req, res) => {
       // use the cart information passed from the front-end to calculate the order amount detals
       const { cart } = req.body;
       const { jsonResponse, httpStatusCode } = await utils.createOrderPayPal(cart);
-      res.status(httpStatusCode).json(jsonResponse);
+      console.log(httpStatusCode, jsonResponse);
+      res.send({
+        status: true,
+        code: httpStatusCode,
+        order_id: jsonResponse.id
+      });
     } catch (error) {
       console.error("Failed to create order:", error);
-      res.status(500).json({ error: "Failed to create order." });
+      res.send({
+        status: false,
+        message: "Failed to create order"
+      })
     }
   });
 
@@ -31,10 +39,17 @@ router.post("/orders", async (req, res) => {
     try {
       const { orderID } = req.params;
       const { jsonResponse, httpStatusCode } = await utils.captureOrderPayPal(orderID);
-      res.status(httpStatusCode).json(jsonResponse);
+      res.send({
+        status: true,
+        code: httpStatusCode,
+        result: jsonResponse
+      });
     } catch (error) {
       console.error("Failed to create order:", error);
-      res.status(500).json({ error: "Failed to capture order." });
+      res.send({
+        status: false,
+        message: "Failed to capture order"
+      })
     }
   });
   

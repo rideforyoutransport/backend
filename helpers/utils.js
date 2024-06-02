@@ -219,9 +219,19 @@ const createOrderPayPal = async (cart) => {
         purchase_units: [
             {
                 amount: {
-                    currency_code: "USD",
-                    value: "100.00",
+                    currency_code: "CAD",
+                    value: cart.amount,
                 },
+                items: [
+                    {
+                        name: cart.name,
+                        quantity: 1,
+                        unit_amount: {
+                            currency_code: "CAD",
+                            value: cart.amount
+                        }
+                    }
+                ]
             },
         ],
     };
