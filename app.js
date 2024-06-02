@@ -22,7 +22,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'category_images')));
-app.use('/', ()=>{console.log("Server has connected");
+app.use('/', (req,res)=>{console.log("Server has connected");
 res.status(200).send({ message: "Connected succesfully" });});
 app.use('/api', routes);
 
