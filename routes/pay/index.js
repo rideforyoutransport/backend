@@ -1,9 +1,21 @@
 const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
+const confirmVerification  = require('../../pocketbase/pocketbase.js').confirmVerification;
+ 
+const { STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY } = process.env;
 
 
 
+router.get('/secrets', async (req, res) => {
+  try {
+      confirmVerification('user',req.headers.authorization);
+      res.status(200).json({STRIPE_PUBLISHABLE_KEY,STRIPE_SECRET_KEY});
+    } catch (error) {
+      console.error("Failed to Read Secrets from env", error);
+      res.status(500).send({ error: "Failed to Read Secrets from env" });
+    }
+});
 
 router.post('/token', async (req, res) => {
     try {
