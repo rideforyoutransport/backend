@@ -1,5 +1,8 @@
 var axios = require("axios");
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_BASE_URL } = process.env;
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const EPOCH_24H= 86400;
 
 
 const cleanExpandData = (data, keys, paginatedData) => {
@@ -309,6 +312,15 @@ const createStringForStops = (stops) => {
     return finalParam;
 }
 
+const initiateRefund=async (amount,payment_intent)=>{
+
+const refund = await stripe.refunds.create({
+  payment_intent: payment_intent,
+  amount: amount
+});
+return refund;
+}
+
 
 module.exports = {
 
@@ -325,6 +337,8 @@ module.exports = {
     generateAccessTokenPayPal,
     generateClientTokenPapPal,
     createOrderPayPal,
-    captureOrderPayPal
+    captureOrderPayPal,
+    initiateRefund,
+    EPOCH_24H
 
 }

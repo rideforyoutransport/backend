@@ -8,7 +8,9 @@ const currentUser = pb.authStore.model;
 const confirmVerification = async (collection, token, refresh) => {
 
   try {
-    await pb.collection(collection).confirmVerification(token);
+    console.log("this method id called",pb_authStore);
+    // console.log("auth validation",pb_authStore,await pb.collection(collection).confirmVerification(token));
+    // await pb.collection(collection).confirmVerification(token);
     if (refresh) {
       await pb.collection(collection).authRefresh();
     }
