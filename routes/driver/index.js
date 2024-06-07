@@ -288,8 +288,17 @@ router.post('/allChats', async (req, res) => {
         // const params = Object.assign({}, req.params);
         let filter= `driver="${req.body.driver}"`;
         console.log("filter",filter);
-        const records = await pb.collection('chats').getFullList({filter: filter});
+        let records = await pb.collection('chats').getFullList({filter: filter});
         console.log(records);
+        records.map(record => {
+            let unread = 0;
+            record.messages.map(message=>{
+                if(!message.seenByDriver){
+                    unread++;
+                }
+            })
+            record.unread = unread;
+        })
         return res.send({
             success: true,
             result: records

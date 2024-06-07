@@ -46,7 +46,7 @@ const io = require('socket.io')(server, {
 
   await pb.collection('chats').subscribe('*', function(e){
     console.log("this is inside ",e.record.messages,e.action);
-    socket.emit("chatsAPI", e.record.messages);
+    socket.emit("chatsAPI", e.record);
   });
 
   io.on("disconnect", () => {
