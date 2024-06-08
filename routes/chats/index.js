@@ -43,12 +43,8 @@ router.post('/getChatData/:id', async (req, res) => {
         })
 
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
-        let newRecords = [];
-        newRecords.push(records);
-        newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
-        let record = newRecords[0];
-        record.messages.map(message => {
+        let records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
+        records.messages.map(message => {
             if(type == "driver"){
                 message.seenByDriver = true;
             }
@@ -57,6 +53,14 @@ router.post('/getChatData/:id', async (req, res) => {
                 message.seenByUser = true;
             }
         })
+
+        await pb.collection('chats').update(records.id, records);
+        let newRecords = [];
+        newRecords.push(records);
+        newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
+        let record = newRecords[0];
+        console.log(type);
+
         if(record.booking == ""){
             record.booking = null;
         }

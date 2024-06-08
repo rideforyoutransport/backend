@@ -286,19 +286,31 @@ router.delete('/:id', async (req, res) => {
 router.post('/allChats', async (req, res) => {
     try {
         // const params = Object.assign({}, req.params);
+        console.log(req.body);
         let filter= `driver="${req.body.driver}"`;
         console.log("filter",filter);
-        let records = await pb.collection('chats').getFullList({filter: filter});
+        let expandKeys = req.body.expandKeys;
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        })
+        let records = await pb.collection('chats').getFullList({filter: filter, expand: expandKeyNames.toString()});
         console.log(records);
-        records.map(record => {
-            let unread = 0;
-            record.messages.map(message=>{
-                if(!message.seenByDriver){
-                    unread++;
+        if(records.length > 0){
+            records = utils.cleanExpandData(records, expandKeys, false);
+            records.map(record => {
+                let unread = 0;
+                record.messages.map(message=>{
+                    if(!message.seenByDriver){
+                        unread++;
+                    }
+                })
+                record.unread = unread;
+                if(record.booking == ""){
+                    record.booking = null;
                 }
             })
-            record.unread = unread;
-        })
+        }
         return res.send({
             success: true,
             result: records
