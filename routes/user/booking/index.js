@@ -1,12 +1,12 @@
 const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
-const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
+const { pb, pb_authStore } = require('../../../pocketbase/pocketbase.js');
 
 
 let bookingData = {};
 
-const createOrUpdatebookingData = async (bData) => {
+const createOrUpdatebookingData = (bData) => {
 
     bookingData.trip = bData.trip;
     bookingData.user = bData.user;
@@ -20,7 +20,7 @@ const createOrUpdatebookingData = async (bData) => {
     //bookingData.promoCode=bData.promoCode?bData.promoCode:false;
     bookingData.reciept = bData.reciept;
     bookingData.tipPaid = bData.tipPaid ? bData.tipPaid : false;
-    bookingData.tipAmount = bData.tipPaid ? bdata.tipAmount : 0;
+    bookingData.tipAmount = bData.tipPaid ? bData.tipAmount : 0;
     bookingData.from = bData.from;
     bookingData.to = bData.to;
     bookingData.bookingDate = bData.bookingDate;
@@ -28,6 +28,9 @@ const createOrUpdatebookingData = async (bData) => {
     bookingData.duration = bData.duration;
     bookingData.rating = bData.rating;
     bookingData.review = bData.review;
+    bookingData.cancelled = bData.cancelled;
+    bookingData.paymentID = bData.paymentID;
+    bookingData.tipPaymentID = bData.tipPaymentID;
     return bookingData;
 }
 
@@ -45,24 +48,23 @@ const getDataFromTrip = async (data) => {
 
 router.post('/add', async (req, res) => {
 
-    let bData = await createOrUpdatebookingData(req.body);
+    let bData = createOrUpdatebookingData(req.body);
     try {
 
         let data = await getDataFromTrip(bData);
         let trip = await pb.collection('trips').getOne(data.trip);
-        if(bData.totalSeatsBooked <= trip.totalSeatsLeft){
-            trip.totalSeatsLeft =  trip.totalSeatsLeft  - bData.totalSeatsBooked ;
+        if (bData.totalSeatsBooked <= trip.totalSeatsLeft) {
+            trip.totalSeatsLeft = trip.totalSeatsLeft - bData.totalSeatsBooked;
             await pb.collection('trips').update(trip.id, trip);
-            const bookingResp= await pb.collection('bookings').create(data);
+            const bookingResp = await pb.collection('bookings').create(data);
 
-            console.log("chat session call" , bookingResp);
-             
-           let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"` , sort: '-updated', });
-            if(chatSession.length>0 && chatSession[0].booking==''){
-                chatSession[0].booking=bookingResp.id;
-                console.log(chatSession[0],"this is the chat sessopm");
+            console.log("chat session call", bookingResp);
+
+            let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"`, sort: '-updated', });
+            if (chatSession.length > 0 && chatSession[0].booking == '') {
+                chatSession[0].booking = bookingResp.id;
+
                 let respChats = await pb.collection('chats').update(chatSession[0].id, chatSession[0]);
-                console.log("thi sis teh response ",respChats);
                 // await pb.collection('chats').update(chatSession[0].id));
             }
             return res.send({
@@ -72,7 +74,7 @@ router.post('/add', async (req, res) => {
         } else {
             return res.send({
                 success: false,
-                message: "Not enough seats left! dfdf"
+                message: "Not enough seats left!"
             })
         }
 
@@ -80,7 +82,7 @@ router.post('/add', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -91,21 +93,37 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let bookings = createOrUpdatebookingData(req.body);
-    console.log(bookings);
     try {
-        const record = await pb.collection('bookings').update(params.id, bookings);
-        console.log(record);
+        console.log("booking call is here", bookings)
+        let refund = null;
+        let refundAmount = 0
+        if (bookings.cancelled) {
+            console.log("inside if booking call is here")
+            const record = await pb.collection('bookings').getOne(params.id, {
+                expand: 'trip'
+            });
+            console.log("this is booking", (new Date()).getTime());
+            if (record?.expand?.trip?.tripDate) {
+                tripDate = record?.expand?.trip?.tripDate;
+                if ((new Date(tripDate).getTime() - new Date().getTime()) > utils.EPOCH_24H) {
+                    refundAmount = (record?.expand?.trip?.bookingMinimumAmount) / 2;
+                }
+            }
 
+            refund = await utils.initiateRefund(record?.expand?.trip?.bookingMinimumAmount, record?.paymentIntent);
+        }
+        // const record = await pb.collection('bookings').update(params.id, bookings);
         return res.send({
             success: true,
-            message: "Record updated!"
+            message: "Record updated!",
+            refund: refund
         })
 
     } catch (error) {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -133,10 +151,10 @@ router.post('/all', async (req, res) => {
         console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                typeFilter+'&& deleted=false'
+                typeFilter + '&& deleted=false'
         });
         records = utils.cleanExpandData(records, expandKeys, true);
-        records.forEach(element=>{
+        records.forEach(element => {
             let details = element.otherUsers["details"];
             element.otherUsers["details"] = JSON.parse(details);
             return element;
@@ -150,7 +168,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -169,7 +187,7 @@ router.post('/:id', async (req, res) => {
         records.push(await pb.collection('bookings').getOne(params.id, { expand: expandKeyNames.toString() }));
         console.log(records[0].expand);
         records = utils.cleanExpandData(records, expandKeys, false);
-        records.forEach(element=>{
+        records.forEach(element => {
             let details = element.otherUsers["details"];
             element.otherUsers["details"] = JSON.parse(details);
             return element;
@@ -183,7 +201,7 @@ router.post('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -192,7 +210,7 @@ router.post('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('bookings').update(params.id, {deleted: true});
+        const records = await pb.collection('bookings').update(params.id, { deleted: true });
         return res.send({
             success: true,
             result: records
@@ -201,7 +219,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 

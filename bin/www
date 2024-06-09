@@ -22,9 +22,6 @@ const {pb}  = require('../pocketbase/pocketbase.js');
 
 
 
-
-
- 
  /**
   * Create HTTP server.
   */
@@ -46,7 +43,7 @@ const io = require('socket.io')(server, {
 
   await pb.collection('chats').subscribe('*', function(e){
     console.log("this is inside ",e.record.messages,e.action);
-    socket.emit("chatsAPI", e.record.messages);
+    socket.emit("chatsAPI", e.record);
   });
 
   io.on("disconnect", () => {
@@ -86,6 +83,7 @@ const io = require('socket.io')(server, {
   */
  
  function onError(error) {
+  var port = parseInt(process.env.SERVER_PORT || 10);
    if (error.syscall !== 'listen') {
      throw error;
    }

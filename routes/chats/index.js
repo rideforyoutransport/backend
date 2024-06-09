@@ -35,6 +35,7 @@ let createOrUpdateChatData = async (cData, id) => {
 
 router.post('/getChatData/:id', async (req, res) => {
     try {
+        let type = req.body.type;
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
         Object.keys(expandKeys).forEach(key => {
@@ -42,11 +43,24 @@ router.post('/getChatData/:id', async (req, res) => {
         })
 
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
+        let records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
+        records.messages.map(message => {
+            if(type == "driver"){
+                message.seenByDriver = true;
+            }
+
+            if(type == "user"){
+                message.seenByUser = true;
+            }
+        })
+
+        await pb.collection('chats').update(records.id, records);
         let newRecords = [];
         newRecords.push(records);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
         let record = newRecords[0];
+        console.log(type);
+
         if(record.booking == ""){
             record.booking = null;
         }
