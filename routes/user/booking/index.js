@@ -29,7 +29,8 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.rating = bData.rating;
     bookingData.review = bData.review;
     bookingData.cancelled = bData.cancelled;
-    bookingData.paymentIntent = bData.bookingData;
+    bookingData.paymentID = bData.paymentID;
+    bookingData.tipPaymentID = bData.tipPaymentID;
     return bookingData;
 }
 
