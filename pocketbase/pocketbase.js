@@ -1,3 +1,4 @@
+const { default: axios } = require('axios');
 const PocketBase = require('pocketbase/cjs');
 const pb_port = normalizePort(process.env.PB_PORT || 'http://127.0.0.1:8090');
 const pb = new PocketBase(pb_port);
@@ -8,7 +9,7 @@ const currentUser = pb.authStore.model;
 const confirmVerification = async (collection, token, refresh) => {
 
   try {
-    console.log("this method id called",pb_authStore);
+    console.log("this method id called", pb_authStore);
     // console.log("auth validation",pb_authStore,await pb.collection(collection).confirmVerification(token));
     // await pb.collection(collection).confirmVerification(token);
     if (refresh) {
@@ -20,6 +21,18 @@ const confirmVerification = async (collection, token, refresh) => {
 
 
 }
+
+const getRecordId = async (collection, token) => {
+  const response = await axios({
+    method: 'post',
+    url: `http://127.0.0.1:8090/api/collections/${collection}/auth-refresh`,
+    headers: { 'Content-Type': 'application/json', 'Authorization': token },
+  })
+
+
+  return response.data.record.id;
+}
+
 const clearAuth = async (collection, token, refresh) => {
   pb.authStore.clear();
 }
@@ -44,6 +57,7 @@ module.exports = {
   pb,
   confirmVerification,
   clearAuth,
+  getRecordId,
   pb_authStore,
   currentUser
 }

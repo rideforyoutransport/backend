@@ -1,7 +1,8 @@
+const { default: axios } = require('axios');
 const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
-const { pb, pb_authStore } = require('../../../pocketbase/pocketbase.js');
+const { pb, pb_authStore, getRecordId } = require('../../../pocketbase/pocketbase.js');
 
 
 let bookingData = {};
@@ -136,6 +137,10 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
+        console.log(req.headers.authorization)
+
+        let id = await getRecordId("users", req.headers.authorization);
+        console.log(id);
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
         Object.keys(expandKeys).forEach(key => {
@@ -148,6 +153,8 @@ router.post('/all', async (req, res) => {
         } else if (req.body.type == 1) {
             typeFilter = "bookingDate > @now"
         }
+
+        typeFilter = typeFilter + ` && user="${id}"`;
         console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
