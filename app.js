@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 
 //firebase
 const  { initializeApp } = require("firebase/app");
-const firebaseConfig = require('./helpers/firebase');
+const firebaseConfig = require('./helpers/firebaseSecrets');
 const fireBaseApp = initializeApp(firebaseConfig);
 
 const app = express();
