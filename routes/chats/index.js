@@ -10,13 +10,13 @@ const { pb, pb_authStore } = require('../../pocketbase/pocketbase.js');
 let chatData = {};
 
 
-const sendNotification =async (token,body)=>{
+const sendNotification =async (token, name, message, cData)=>{
     try {
         // let token = "your-fcm-token-from-frontend"; // Replace with the actual FCM token
         if (!token || typeof token !== 'string') {
           throw new Error('Invalid FCM token provided');
         }
-        await sendNotif(token, "New Message", {"message":body.messages[0].message,id:body.id});
+        await sendNotif(token, `${name} sent you a message`, {"message": message, id:cData.id});
         res.json({
           status: "success",
         });
@@ -106,9 +106,6 @@ router.post('/createChat', async (req, res) => {
         let data = req.body;
         // const params = Object.assign({}, req.params);
         let records = await pb.collection('chats').create(data);
-       
-        //send Notification
-        await sendNotification(req.body.token,records);
         return res.send({
             success: true,
             result: records.id
@@ -172,6 +169,19 @@ router.patch('/chat/:id', async (req, res) => {
         const params = Object.assign({}, req.params);
         let cData = await createOrUpdateChatData(data, params.id);
         const record = await pb.collection('chats').update(params.id, cData);
+        //send Notification
+        let token = '';
+        let name = '';
+        if(data.senderId == cData.user){
+            let driver = await pb.collection('driver').getOne(cData.driver);
+            name = driver.name;
+            token = driver.fcmToken;
+        } else {
+            let user = await pb.collection('users').getOne(cData.user);
+            name = user.name;
+            token = user.fcmToken;
+        }
+        await sendNotification(token, name, data.message, cData);
         return res.send({
             success: true,
             message: "Message Sent!"
