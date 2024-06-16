@@ -1,7 +1,7 @@
 const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
-const sendNotif = require('../../helpers/sendNotifications.js')
+const {sendNotif,getNotificationData,setFCMToken} = require('../../helpers/firebaseFunctions.js');
 
 router.get("/bell", async (req, res) => {
     try {
@@ -21,4 +21,24 @@ router.get("/bell", async (req, res) => {
       });
     }
   });
+
+  router.post("/setToken", async (req, res) => {
+    const body = req.body;
+    try {
+      const resp= await setFCMToken(body.userId,body);
+      res.json({
+        status: "success",
+        response: resp
+      });
+    } catch (error) {
+      console.error("Notification API error:", error.message);
+      res.status(500).json({
+        status: "fail",
+        error: error.message,
+      });
+    }
+  });
+
+
+
   module.exports = router;

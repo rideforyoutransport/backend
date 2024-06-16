@@ -27,9 +27,11 @@ router.post('/login', async (req, res) => {
 
     try {
         const adminData = await pb.collection('users').authWithPassword(req.body.email ? req.body.email : req.body.userName, req.body.password);
-        console.log(adminData);
+        // console.log(adminData);
 
         if(adminData.record.verified){
+            // console.log(pb.authStore);
+
             return res.send({
                 success: true,
                 result: { id: adminData.record.id, token: adminData.token }
@@ -87,6 +89,32 @@ router.post('/resetPassword', async (req, res) => {
 })
 
 router.post('/register', async (req, res) => {
+
+    let user = createOrUpdateUserData(req.body);
+    try {
+        const record = await pb.collection('users').create(user);
+        await pb.collection('users').requestVerification(user.email);
+        const adminData = await pb.collection('users').authWithPassword(req.body.email, req.body.password);
+
+        console.log(record);
+        return res.send({
+            success: true,
+            result: { id: adminData.record.id, token: adminData.token }
+
+        })
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+        })
+    }
+    // const result = await pb.collection('users').listAuthMethods();
+
+})
+
+router.post('/registerNotify', async (req, res) => {
 
     let user = createOrUpdateUserData(req.body);
     try {

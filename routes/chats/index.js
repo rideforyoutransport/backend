@@ -2,9 +2,9 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const sendNotif = require('../../helpers/sendNotifications.js');
+const sendNotif = require('../../helpers/firebaseFunctions.js');
 
-const { pb, pb_authStore } = require('../../pocketbase/pocketbase.js');
+const { pb, getRecordId } = require('../../pocketbase/pocketbase.js');
 
 
 let chatData = {};
@@ -108,6 +108,7 @@ router.post('/createChat', async (req, res) => {
         let records = await pb.collection('chats').create(data);
        
         //send Notification
+        const token = getToken()
         await sendNotification(req.body.token,records);
         return res.send({
             success: true,
@@ -171,6 +172,7 @@ router.patch('/chat/:id', async (req, res) => {
         let data = req.body;
         const params = Object.assign({}, req.params);
         let cData = await createOrUpdateChatData(data, params.id);
+
         const record = await pb.collection('chats').update(params.id, cData);
         return res.send({
             success: true,

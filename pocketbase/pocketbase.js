@@ -6,12 +6,11 @@ const pb_authStore = pb.authStore
 const currentUser = pb.authStore.model;
 
 
-const confirmVerification = async (collection, token, refresh) => {
+const confirmVerificationPb = async (collection, token, refresh) => {
 
   try {
-    console.log("this method id called", pb_authStore);
-    // console.log("auth validation",pb_authStore,await pb.collection(collection).confirmVerification(token));
-    // await pb.collection(collection).confirmVerification(token);
+
+    await pb.collection(collection).confirmVerification(token);
     if (refresh) {
       await pb.collection(collection).authRefresh();
     }
@@ -55,7 +54,7 @@ function normalizePort(val) {
 
 module.exports = {
   pb,
-  confirmVerification,
+  confirmVerification: confirmVerificationPb,
   clearAuth,
   getRecordId,
   pb_authStore,
