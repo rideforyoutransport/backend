@@ -182,7 +182,9 @@ router.patch('/chat/:id', async (req, res) => {
             name = user.name;
             token = user.fcmToken;
         }
+        if(token !=='' || token!==null){
         await sendNotification(token, name, data.message, cData);
+        }
         return res.send({
             success: true,
             message: "Message Sent!"
