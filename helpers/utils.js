@@ -140,6 +140,9 @@ const callMapsAPIForETAAll = async (stops) => {
     console.log('====================================');
     let duration = 0, durationArray = [];
     for (let origin = 0; origin < stops.length - 1; origin++) {
+        console.log('====================================');
+        console.log("origin",stops[origin],"     \nDestination",stops[origin+1]);
+        console.log('====================================');
         let tempDuration = await callMapsApi(stops[origin], stops[origin + 1]);
         duration += tempDuration
         durationArray.push(tempDuration);
@@ -160,6 +163,9 @@ async function callMapsApi(originEle, destinationEle) {
         }
     })
         .then(async function (response) {
+            console.log('====================================');
+            console.log("Debug Response ", response);
+            console.log('====================================');
             let respRows = response.data.rows[0].elements;
             console.log("this maps api ", parseInt(respRows[0].duration.value))
             return parseInt(respRows[0].duration.value);
