@@ -134,7 +134,10 @@ const callMapsAPIForETA = async (from, to, stops) => {
     return eta;
 }
 const callMapsAPIForETAAll = async (stops) => {
-
+  
+    console.log('====================================');
+    console.log("MapsAPi Before Stops", {stops})
+    console.log('====================================');
     let duration = 0, durationArray = [];
     for (let origin = 0; origin < stops.length - 1; origin++) {
         let tempDuration = await callMapsApi(stops[origin], stops[origin + 1]);
