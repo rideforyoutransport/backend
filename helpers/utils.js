@@ -164,7 +164,7 @@ async function callMapsApi(originEle, destinationEle) {
     })
         .then(async function (response) {
             console.log('====================================');
-            console.log("Debug Response ", response);
+            console.log("Debug Response ", response.data.rows[0].elements);
             console.log('====================================');
             let respRows = response.data.rows[0].elements;
             console.log("this maps api ", parseInt(respRows[0].duration.value))
