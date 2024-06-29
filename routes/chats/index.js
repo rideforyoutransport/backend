@@ -47,7 +47,7 @@ const createFilterForChats = (reqBody) => {
 
 let createOrUpdateChatData = async (cData, id) => {
     let chat = await pb.collection('chats').getOne(id);
-    chat.messages = [...oldChatMessages.messages, cData];
+    chat.messages = [...chat.messages, cData];
     return chat;
 };
 
@@ -78,7 +78,6 @@ router.post('/getChatData/:id', async (req, res) => {
         newRecords.push(records);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
         let record = newRecords[0];
-        console.log(type);
 
         if (record.booking == "") {
             record.booking = null;
@@ -120,7 +119,6 @@ router.post('/createChat', async (req, res) => {
 
 router.post('/getChat', async (req, res) => {
     try {
-        console.log(req);
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
         Object.keys(expandKeys).forEach(key => {
@@ -128,10 +126,8 @@ router.post('/getChat', async (req, res) => {
         })
 
         const reqBody = Object.assign({}, req.body);
-        console.log(reqBody);
 
         let filter = createFilterForChats(reqBody);
-        console.log(filter);
         let records = await pb.collection('chats').getFullList({ filter: filter, expand: expandKeyNames.toString() });
         if (records && records.length > 0) {
             records = utils.cleanExpandData(records, expandKeys, false);
@@ -164,7 +160,9 @@ router.patch('/chat/:id', async (req, res) => {
     try {
         let data = req.body;
         const params = Object.assign({}, req.params);
+        console.log(params);
         let cData = await createOrUpdateChatData(data, params.id);
+        console.log(cData, data.senderId);
 
         const record = await pb.collection('chats').update(params.id, cData);
         //send Notification
