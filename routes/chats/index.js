@@ -10,23 +10,23 @@ const { pb } = require('../../pocketbase/pocketbase.js');
 let chatData = {};
 
 
-const sendNotification =async (token, name, message, cData)=>{
+const sendNotification = async (token, name, message, cData) => {
     try {
         // let token = "your-fcm-token-from-frontend"; // Replace with the actual FCM token
         if (!token || typeof token !== 'string') {
-          throw new Error('Invalid FCM token provided');
+            throw new Error('Invalid FCM token provided');
         }
-        await sendNotif(token, `${name} sent you a message`, {"message": message, id:cData.id});
+        await sendNotif(token, `${name} sent you a message`, { "message": message, id: cData.id });
         res.json({
-          status: "success",
+            status: "success",
         });
-      } catch (error) {
+    } catch (error) {
         console.error("Notification API error:", error.message);
         res.status(500).json({
-          status: "fail",
-          error: error.message,
+            status: "fail",
+            error: error.message,
         });
-      }
+    }
 }
 
 
@@ -173,7 +173,7 @@ router.patch('/chat/:id', async (req, res) => {
         //send Notification
         let token = '';
         let name = '';
-        if(data.senderId == cData.user){
+        if (data.senderId == cData.user) {
             let driver = await pb.collection('driver').getOne(cData.driver);
             name = driver.name;
             token = driver.fcmToken;
@@ -182,8 +182,8 @@ router.patch('/chat/:id', async (req, res) => {
             name = user.name;
             token = user.fcmToken;
         }
-        if(token !=='' || token!==null){
-        await sendNotification(token, name, data.message, cData);
+        if (token !== '' && token !== null) {
+            await sendNotification(token, name, data.message, cData);
         }
         return res.send({
             success: true,
