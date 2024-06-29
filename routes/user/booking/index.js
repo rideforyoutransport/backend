@@ -20,8 +20,8 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.amountLeft = bData.amountLeft;
     //bookingData.promoCode=bData.promoCode?bData.promoCode:false;
     bookingData.reciept = bData.reciept;
-    bookingData.tipPaid = bData.tipPaid ? bData.tipPaid : false;
-    bookingData.tipAmount = bData.tipPaid ? bData.tipAmount : 0;
+    bookingData.tipPaid = bData.tipPaid;
+    bookingData.tipAmount = bData.tipAmount;
     bookingData.from = bData.from;
     bookingData.to = bData.to;
     bookingData.bookingDate = bData.bookingDate;
