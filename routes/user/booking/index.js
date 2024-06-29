@@ -110,7 +110,7 @@ router.patch('/:id', async (req, res) => {
 
             refund = await utils.initiateRefund(record?.expand?.trip?.bookingMinimumAmount, record?.paymentIntent);
         }
-        // const record = await pb.collection('bookings').update(params.id, bookings);
+        const record = await pb.collection('bookings').update(params.id, bookings);
         return res.send({
             success: true,
             message: "Record updated!",
