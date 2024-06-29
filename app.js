@@ -8,6 +8,12 @@ var cors = require('cors');
 require('dotenv').config();
 const routes = require('./routes');
 const cookieParser = require('cookie-parser');
+
+//firebase
+const  { initializeApp } = require("firebase/app");
+const firebaseConfig = require('./helpers/firebaseSecrets');
+const fireBaseApp = initializeApp(firebaseConfig);
+
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }))

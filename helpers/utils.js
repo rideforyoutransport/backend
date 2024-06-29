@@ -6,7 +6,7 @@ const EPOCH_24H= 86400;
 
 
 const cleanExpandData = (data, keys, paginatedData) => {
-    console.log(data);
+    // console.log(data);
     if (paginatedData) {
         data = data.items;
     }

@@ -7,6 +7,7 @@ router.use('/driver', require('./driver'));
 router.use('/vendor', require('./vendor'));
 router.use('/chats', require('./chats'));
 router.use('/pay', require('./pay'));
+router.use('/fb', require('./firebase'));
 
 
 

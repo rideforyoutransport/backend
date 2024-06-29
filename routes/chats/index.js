@@ -2,10 +2,32 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const { pb, pb_authStore } = require('../../pocketbase/pocketbase.js');
+const sendNotif = require('../../helpers/firebaseFunctions.js');
+
+const { pb } = require('../../pocketbase/pocketbase.js');
 
 
 let chatData = {};
+
+
+const sendNotification =async (token, name, message, cData)=>{
+    try {
+        // let token = "your-fcm-token-from-frontend"; // Replace with the actual FCM token
+        if (!token || typeof token !== 'string') {
+          throw new Error('Invalid FCM token provided');
+        }
+        await sendNotif(token, `${name} sent you a message`, {"message": message, id:cData.id});
+        res.json({
+          status: "success",
+        });
+      } catch (error) {
+        console.error("Notification API error:", error.message);
+        res.status(500).json({
+          status: "fail",
+          error: error.message,
+        });
+      }
+}
 
 
 const createFilterForChats = (reqBody) => {
@@ -45,11 +67,11 @@ router.post('/getChatData/:id', async (req, res) => {
         const params = Object.assign({}, req.params);
         let records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
         records.messages.map(message => {
-            if(type == "driver"){
+            if (type == "driver") {
                 message.seenByDriver = true;
             }
 
-            if(type == "user"){
+            if (type == "user") {
                 message.seenByUser = true;
             }
         })
@@ -61,7 +83,7 @@ router.post('/getChatData/:id', async (req, res) => {
         let record = newRecords[0];
         console.log(type);
 
-        if(record.booking == ""){
+        if (record.booking == "") {
             record.booking = null;
         }
         return res.send({
@@ -114,10 +136,10 @@ router.post('/getChat', async (req, res) => {
         let filter = createFilterForChats(reqBody);
         console.log(filter);
         let records = await pb.collection('chats').getFullList({ filter: filter, expand: expandKeyNames.toString() });
-        if(records && records.length > 0){
+        if (records && records.length > 0) {
             records = utils.cleanExpandData(records, expandKeys, false);
             let chat = records[0];
-            if(chat.booking == ""){
+            if (chat.booking == "") {
                 chat.booking = null;
             }
             return res.send({
@@ -146,7 +168,23 @@ router.patch('/chat/:id', async (req, res) => {
         let data = req.body;
         const params = Object.assign({}, req.params);
         let cData = await createOrUpdateChatData(data, params.id);
+
         const record = await pb.collection('chats').update(params.id, cData);
+        //send Notification
+        let token = '';
+        let name = '';
+        if(data.senderId == cData.user){
+            let driver = await pb.collection('driver').getOne(cData.driver);
+            name = driver.name;
+            token = driver.fcmToken;
+        } else {
+            let user = await pb.collection('users').getOne(cData.user);
+            name = user.name;
+            token = user.fcmToken;
+        }
+        if(token !=='' || token!==null){
+        await sendNotification(token, name, data.message, cData);
+        }
         return res.send({
             success: true,
             message: "Message Sent!"

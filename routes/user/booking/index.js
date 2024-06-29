@@ -59,7 +59,7 @@ router.post('/add', async (req, res) => {
             await pb.collection('trips').update(trip.id, trip);
             const bookingResp = await pb.collection('bookings').create(data);
 
-            console.log("chat session call", bookingResp);
+            // console.log("chat session call", bookingResp);
 
             let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"`, sort: '-updated', });
             if (chatSession.length > 0 && chatSession[0].booking == '') {
@@ -95,15 +95,12 @@ router.patch('/:id', async (req, res) => {
     const params = Object.assign({}, req.params);
     let bookings = createOrUpdatebookingData(req.body);
     try {
-        console.log("booking call is here", bookings)
         let refund = null;
         let refundAmount = 0
         if (bookings.cancelled) {
-            console.log("inside if booking call is here")
             const record = await pb.collection('bookings').getOne(params.id, {
                 expand: 'trip'
             });
-            console.log("this is booking", (new Date()).getTime());
             if (record?.expand?.trip?.tripDate) {
                 tripDate = record?.expand?.trip?.tripDate;
                 if ((new Date(tripDate).getTime() - new Date().getTime()) > utils.EPOCH_24H) {
@@ -113,7 +110,7 @@ router.patch('/:id', async (req, res) => {
 
             refund = await utils.initiateRefund(record?.expand?.trip?.bookingMinimumAmount, record?.paymentIntent);
         }
-        // const record = await pb.collection('bookings').update(params.id, bookings);
+        const record = await pb.collection('bookings').update(params.id, bookings);
         return res.send({
             success: true,
             message: "Record updated!",
@@ -138,9 +135,10 @@ router.patch('/:id', async (req, res) => {
 router.post('/all', async (req, res) => {
     try {
         console.log(req.headers.authorization)
-
-        let id = await getRecordId("users", req.headers.authorization);
+        let userId = req.body.userId;
+        let id = userId ? userId : await getRecordId("users", req.headers.authorization);
         console.log(id);
+
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
         Object.keys(expandKeys).forEach(key => {
@@ -153,15 +151,17 @@ router.post('/all', async (req, res) => {
         } else if (req.body.type == 1) {
             typeFilter = "bookingDate > @now"
         }
-
         typeFilter = typeFilter + ` && user="${id}"`;
         console.log(typeFilter);
+
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
                 typeFilter + '&& deleted=false'
         });
         records = utils.cleanExpandData(records, expandKeys, true);
+
         records.forEach(element => {
+
             let details = element.otherUsers["details"];
             element.otherUsers["details"] = JSON.parse(details);
             return element;
@@ -192,8 +192,9 @@ router.post('/:id', async (req, res) => {
 
         let records = [];
         records.push(await pb.collection('bookings').getOne(params.id, { expand: expandKeyNames.toString() }));
-        console.log(records[0].expand);
+        // console.log(records[0].expand);
         records = utils.cleanExpandData(records, expandKeys, false);
+
         records.forEach(element => {
             let details = element.otherUsers["details"];
             element.otherUsers["details"] = JSON.parse(details);
