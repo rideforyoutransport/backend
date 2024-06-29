@@ -135,8 +135,8 @@ router.patch('/:id', async (req, res) => {
 router.post('/all', async (req, res) => {
     try {
         console.log(req.headers.authorization)
-
-        let id = await getRecordId("users", req.headers.authorization);
+        let userId = req.body.userId;
+        let id = userId ? userId : await getRecordId("users", req.headers.authorization);
         console.log(id);
 
         let expandKeys = req.body.expandKeys;
@@ -159,9 +159,9 @@ router.post('/all', async (req, res) => {
                 typeFilter + '&& deleted=false'
         });
         records = utils.cleanExpandData(records, expandKeys, true);
-        
+
         records.forEach(element => {
-            
+
             let details = element.otherUsers["details"];
             element.otherUsers["details"] = JSON.parse(details);
             return element;

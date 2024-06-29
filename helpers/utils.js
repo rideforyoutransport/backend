@@ -134,9 +134,15 @@ const callMapsAPIForETA = async (from, to, stops) => {
     return eta;
 }
 const callMapsAPIForETAAll = async (stops) => {
-
+  
+    console.log('====================================');
+    console.log("MapsAPi Before Stops", {stops})
+    console.log('====================================');
     let duration = 0, durationArray = [];
     for (let origin = 0; origin < stops.length - 1; origin++) {
+        console.log('====================================');
+        console.log("origin",stops[origin],"     \nDestination",stops[origin+1]);
+        console.log('====================================');
         let tempDuration = await callMapsApi(stops[origin], stops[origin + 1]);
         duration += tempDuration
         durationArray.push(tempDuration);
@@ -157,9 +163,18 @@ async function callMapsApi(originEle, destinationEle) {
         }
     })
         .then(async function (response) {
+            console.log('====================================');
+            console.log("Debug Response ", response.data.rows[0].elements);
+            console.log('====================================');
             let respRows = response.data.rows[0].elements;
-            console.log("this maps api ", parseInt(respRows[0].duration.value))
-            return parseInt(respRows[0].duration.value);
+            if((respRows[0]).status=='OK'){
+                console.log("this maps api ", parseInt(respRows[0].duration.value))
+                return parseInt(respRows[0].duration.value);
+            }else{
+                console.log("this maps api ", parseInt(0))
+                return parseInt(0);
+            }
+           
         })
         .catch(function (error) {
             console.log(error)

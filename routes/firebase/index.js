@@ -1,7 +1,31 @@
 const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
-const {sendNotif,getNotificationData,setFCMToken} = require('../../helpers/firebaseFunctions.js');
+const {sendNotif,getNotificationData} = require('../../helpers/firebaseFunctions.js');
+const {user , driver} = require('../../helpers/constants.js');
+
+const {pb} = require('../../pocketbase/pocketbase.js');
+
+
+
+const setFCMToken = async (id,userType,token) => {
+
+  try {
+    let oldToken=null;
+    if(userType == user){
+      // oldToken = await pb.collection('users').getOne(id);
+      oldToken = await pb.collection('users').update(id, {'fcmToken':token});
+
+    }else if(userType == driver){
+      // oldToken = await pb.collection('driver').getOne(id);
+      oldToken = await pb.collection('driver').update(id, {'fcmToken':token});
+    }
+    return ;
+  } catch (error) {
+    console.error("Error updating notification data:", error);
+    return null;
+  }
+};
 
 router.get("/bell", async (req, res) => {
     try {
@@ -25,10 +49,10 @@ router.get("/bell", async (req, res) => {
   router.post("/setToken", async (req, res) => {
     const body = req.body;
     try {
-      const resp= await setFCMToken(body.userId,body);
+      const resp= await setFCMToken(body.id,body.userType,body.token);
       res.json({
         status: "success",
-        response: resp
+        response: "Token Added Succesfully "
       });
     } catch (error) {
       console.error("Notification API error:", error.message);
@@ -40,5 +64,5 @@ router.get("/bell", async (req, res) => {
   });
 
 
-
+             
   module.exports = router;

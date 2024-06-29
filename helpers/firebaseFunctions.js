@@ -15,9 +15,6 @@ admin.initializeApp({
 
 
 
-// const ref = db.ref('server/saving-data/fireblog');
-
-
 const sendNotif = async (token, title, body) => {
   try {
     if (!token || typeof token !== 'string') {
