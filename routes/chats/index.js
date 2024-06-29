@@ -7,9 +7,6 @@ const sendNotif = require('../../helpers/firebaseFunctions.js');
 const { pb } = require('../../pocketbase/pocketbase.js');
 
 
-let chatData = {};
-
-
 const sendNotification = async (token, name, message, cData) => {
     try {
         // let token = "your-fcm-token-from-frontend"; // Replace with the actual FCM token
@@ -49,9 +46,9 @@ const createFilterForChats = (reqBody) => {
 }
 
 let createOrUpdateChatData = async (cData, id) => {
-    let oldChatMessages = await pb.collection('chats').getOne(id);
-    chatData.messages = [...oldChatMessages.messages, cData];
-    return chatData;
+    let chat = await pb.collection('chats').getOne(id);
+    chat.messages = [...oldChatMessages.messages, cData];
+    return chat;
 };
 
 
