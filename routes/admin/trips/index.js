@@ -193,7 +193,7 @@ const filterToString = (filter) => {
 router.post('/add', async (req, res) => {
     console.log(req.body);
     let returnRecord;
-    if (req.body.returnTrip && req.body.isReturnTrip) {
+    if (req.body.returnTrip) {
         let returnTrip = await createOrUpdatetripData(req.body.returnTrip, null);
         returnRecord = await pb.collection('trips').create(returnTrip);
     }
