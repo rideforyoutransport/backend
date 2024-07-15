@@ -183,7 +183,7 @@ const filterToString = (filter) => {
             finalFilter += eleFilter + ' && '
 
         });
-        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& isReturnTrip=false && requestedTrip=false && deleted=false';
+        finalFilter = finalFilter.slice(0, finalFilter.length - 3) + '&& requestedTrip=false && deleted=false';
     }
     console.log("finalFilter", finalFilter);
     return finalFilter
@@ -261,7 +261,7 @@ router.post('/all', async (req, res) => {
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                'totalSeatsLeft>0 && isReturnTrip=false && requestedTrip=false && deleted=false'
+                'totalSeatsLeft>0 && requestedTrip=false && deleted=false'
         });
         console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);

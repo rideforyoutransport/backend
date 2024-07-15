@@ -21,22 +21,14 @@ const sendNotif = async (token, title, body) => {
       throw new Error('Invalid FCM token provided');
     }
     const message = {
-      notification: {
+      data: {
         title: title,
         body: body,
-      },
-      android: {
-        notification: {
-          sound: "default",
-        },
-        data: {
-          title: title,
-          body: body,
-        },
       },
       token: token,
     };
     const response = await admin.messaging().send(message);
+    return response;
     console.log("Successfully sent message:", response);
   } catch (error) {
     console.error("Error sending message:", error.message);
