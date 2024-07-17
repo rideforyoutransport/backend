@@ -59,6 +59,16 @@ router.post('/getChatData/:id', async (req, res) => {
         const params = Object.assign({}, req.params);
         let records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
         let update = false;
+        let trip = await pb.collection('trips').getOne(records.expand.trip.id, {expand: "id, from, to, stops, tripDate" });
+        let newTrips = [];
+        newTrips.push(trip);
+        let trips = utils.cleanExpandData(newTrips, ["id", "from", "to", "stops", "tripDate"], false);
+        records.expand.trip = trips[0];
+        if(records.booking!= ""){
+            let booking = await pb.collection('bookings').getOne(records.expand.booking.id, {expand: "id, from, to, bookingDate, totalSeatsBooked, status" });
+            let bookings = utils.cleanExpandData([booking], ["id", "from", "to", "bookingDate", "totalSeatsBooked", "status"], false);
+            records.expand.booking = bookings[0];
+        }
         records.messages.map(message => {
             if (type == "driver") {
                 if (!message.seenByDriver) {
