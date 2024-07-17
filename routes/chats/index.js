@@ -2,7 +2,7 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const sendNotif = require('../../helpers/firebaseFunctions.js');
+const { sendNotif } = require('../../helpers/firebaseFunctions.js');
 
 const { pb } = require('../../pocketbase/pocketbase.js');
 
@@ -13,16 +13,11 @@ const sendNotification = async (token, name, message, cData) => {
         if (!token || typeof token !== 'string') {
             throw new Error('Invalid FCM token provided');
         }
-        await sendNotif(token, `${name} sent you a message`, { "message": message, id: cData.id });
-        res.json({
-            status: "success",
-        });
+        let response = await sendNotif(token, `${name} sent you a message`, JSON.stringify({ "message": message, id: cData.id }));
+        console.log(response);
+        return response;
     } catch (error) {
         console.error("Notification API error:", error.message);
-        res.status(500).json({
-            status: "fail",
-            error: error.message,
-        });
     }
 }
 
@@ -63,17 +58,36 @@ router.post('/getChatData/:id', async (req, res) => {
 
         const params = Object.assign({}, req.params);
         let records = await pb.collection('chats').getOne(params.id, { expand: expandKeyNames.toString() });
+        let update = false;
+        let trip = await pb.collection('trips').getOne(records.expand.trip.id, {expand: "id, from, to, stops, tripDate" });
+        let newTrips = [];
+        newTrips.push(trip);
+        let trips = utils.cleanExpandData(newTrips, ["id", "from", "to", "stops", "tripDate"], false);
+        records.expand.trip = trips[0];
+        if(records.booking!= ""){
+            let booking = await pb.collection('bookings').getOne(records.expand.booking.id, {expand: "id, from, to, bookingDate, totalSeatsBooked, status" });
+            let bookings = utils.cleanExpandData([booking], ["id", "from", "to", "bookingDate", "totalSeatsBooked", "status"], false);
+            records.expand.booking = bookings[0];
+        }
         records.messages.map(message => {
             if (type == "driver") {
-                message.seenByDriver = true;
+                if (!message.seenByDriver) {
+                    update = true;
+                    message.seenByDriver = true;
+                }
             }
 
             if (type == "user") {
-                message.seenByUser = true;
+                if (!message.seenByUser) {
+                    update = true;
+                    message.seenByUser = true;
+                }
             }
         })
 
-        await pb.collection('chats').update(records.id, records);
+        if (update) {
+            await pb.collection('chats').update(records.id, records);
+        }
         let newRecords = [];
         newRecords.push(records);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
@@ -160,9 +174,9 @@ router.patch('/chat/:id', async (req, res) => {
     try {
         let data = req.body;
         const params = Object.assign({}, req.params);
-        console.log(params);
+        //console.log(params);
         let cData = await createOrUpdateChatData(data, params.id);
-        console.log(cData, data.senderId);
+        //console.log(cData, data.senderId);
 
         const record = await pb.collection('chats').update(params.id, cData);
         //send Notification
@@ -178,7 +192,11 @@ router.patch('/chat/:id', async (req, res) => {
             token = user.fcmToken;
         }
         if (token !== '' && token !== null) {
-            await sendNotification(token, name, data.message, cData);
+            try {
+                await sendNotification(token, name, data.message, cData);
+            } catch (error) {
+                console.log(error);
+            }
         }
         return res.send({
             success: true,

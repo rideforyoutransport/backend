@@ -29,7 +29,6 @@ const createOrUpdatebookingData = (bData) => {
     bookingData.duration = bData.duration;
     bookingData.rating = bData.rating;
     bookingData.review = bData.review;
-    bookingData.cancelled = bData.cancelled;
     bookingData.paymentID = bData.paymentID;
     bookingData.tipPaymentID = bData.tipPaymentID;
     return bookingData;
@@ -97,7 +96,7 @@ router.patch('/:id', async (req, res) => {
     try {
         let refund = null;
         let refundAmount = 0
-        if (bookings.cancelled) {
+        if (bookings.status == 0) {
             const record = await pb.collection('bookings').getOne(params.id, {
                 expand: 'trip'
             });
