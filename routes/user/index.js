@@ -4,6 +4,8 @@ const router = require('express').Router();
 
 const {pb,pb_authStore}  = require('../../pocketbase/pocketbase.js');
 
+let multer = require('multer');
+let upload = multer();
 
 
 let userData = {};
@@ -143,7 +145,6 @@ router.patch('/:id', async (req, res) => {
 
     const params = Object.assign({}, req.params);
     let user = createOrUpdateUserData(req.body);
-    console.log({ user });
     try {
         const record = await pb.collection('users').update(params.id, user);
 

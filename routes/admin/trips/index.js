@@ -16,7 +16,7 @@ let tripData = {};
 const calculateTotalTripAmount = async (tData) => {
     let amount = 0
     const fares = tData.fares;
-    console.log(fares);
+    console.log({fares});
     fares.forEach(fare => {
         if (fare.from.place_id == tData.from.place_id && fare.to.place_id == tData.to.place_id) {
             amount += fare.fare>0?fare.fare:0;
@@ -193,7 +193,7 @@ const filterToString = (filter) => {
 router.post('/add', async (req, res) => {
     console.log(req.body);
     let returnRecord;
-    if (req.body.returnTrip && req.body.isReturnTrip) {
+    if (req.body.returnTrip) {
         let returnTrip = await createOrUpdatetripData(req.body.returnTrip, null);
         returnRecord = await pb.collection('trips').create(returnTrip);
     }
