@@ -9,11 +9,10 @@ const { pb } = require('../../pocketbase/pocketbase.js');
 
 const sendNotification = async (token, name, message, cData) => {
     try {
-        // let token = "your-fcm-token-from-frontend"; // Replace with the actual FCM token
         if (!token || typeof token !== 'string') {
             throw new Error('Invalid FCM token provided');
         }
-        let response = await sendNotif(token, `${name} sent you a message`, JSON.stringify({ "message": message, id: cData.id }));
+        let response = await sendNotif(token, `${name} sent you a message`, JSON.stringify({ description: message, id: cData.id, page: 1}));
         console.log(response);
         return response;
     } catch (error) {
