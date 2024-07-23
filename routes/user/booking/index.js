@@ -3,6 +3,9 @@ const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
 const { pb, pb_authStore, getRecordId } = require('../../../pocketbase/pocketbase.js');
+const moment = require('moment');
+const { sendNotif } = require('../../../helpers/firebaseFunctions.js');
+const e = require('cors');
 
 
 let bookingData = {};
@@ -46,6 +49,19 @@ const getDataFromTrip = async (data) => {
 
 }
 
+const sendNotification = async (token, title, desc, page, id) => {
+    try {
+        if (!token || typeof token !== 'string') {
+            throw new Error('Invalid FCM token provided');
+        }
+        let response = await sendNotif(token, title, JSON.stringify({ description: desc, id: id, page: page}));
+        console.log(response);
+        return response;
+    } catch (error) {
+        console.error("Notification API error:", error.message);
+    }
+}
+
 router.post('/add', async (req, res) => {
 
     let bData = createOrUpdatebookingData(req.body);
@@ -56,17 +72,44 @@ router.post('/add', async (req, res) => {
         if (bData.totalSeatsBooked <= trip.totalSeatsLeft) {
             trip.totalSeatsLeft = trip.totalSeatsLeft - bData.totalSeatsBooked;
             await pb.collection('trips').update(trip.id, trip);
-            const bookingResp = await pb.collection('bookings').create(data);
+            let bookingResp = await pb.collection('bookings').create(data);
 
             // console.log("chat session call", bookingResp);
 
-            let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"`, sort: '-updated', });
+            let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${Data.trip}" && user="${bData.user}"`, sort: '-updated', });
             if (chatSession.length > 0 && chatSession[0].booking == '') {
                 chatSession[0].booking = bookingResp.id;
 
                 let respChats = await pb.collection('chats').update(chatSession[0].id, chatSession[0]);
                 // await pb.collection('chats').update(chatSession[0].id));
             }
+
+            let driver = await pb.collection('driver').getOne(trip.driver);
+            let driverToken = driver.fcmToken;
+
+            let user = await pb.collection('users').getOne(bookingResp.user);
+            let userToken = user.fcmToken;
+
+            let from = await pb.collection('stops').getOne(bookingResp.from);
+            let to = await pb.collection('stops').getOne(bookingResp.to);
+            
+
+            if (driverToken !== '' && driverToken !== null) {
+                try {
+                    await sendNotification(driverToken, "Trip booked", `Booking for trip ${from.name} to ${to.name}(${moment(trip.tripDate).format('DD/MM/YYYY')}) for ${bookingResp.totalSeatsBooked} seats was booked by ${user.name}`, 2, trip.id);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+
+            if (userToken !== '' && userToken !== null) {
+                try {
+                    await sendNotification(userToken, "Trip booked", `Booking for trip ${from.name} to ${to.name}(${moment(trip.tripDate).format('DD/MM/YYYY')}) for ${bookingResp.totalSeatsBooked} seats`, 3, bookingResp.id);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+
             return res.send({
                 success: true,
                 message: "Booking confirmed!"
@@ -108,6 +151,32 @@ router.patch('/:id', async (req, res) => {
             }
 
             refund = await utils.initiateRefund(record?.expand?.trip?.bookingMinimumAmount, record?.paymentIntent);
+
+            let driver = await pb.collection('driver').getOne(record?.expand?.trip?.driver);
+            let driverToken = driver.fcmToken;
+
+            let user = await pb.collection('users').getOne(record.user);
+            let userToken = user.fcmToken;
+
+            let from = await pb.collection('stops').getOne(record.from);
+            let to = await pb.collection('stops').getOne(record.to);
+            
+
+            if (driverToken !== '' && driverToken !== null) {
+                try {
+                    await sendNotification(driverToken, "Booking cancelled", `Booking for trip ${from.name} to ${to.name}(${moment(record?.expand?.trip?.tripDate).format('DD/MM/YYYY')}) for ${record.totalSeatsBooked} seats was cancelled by ${user.name}`, 2, record?.expand?.trip?.id);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+
+            if (userToken !== '' && userToken !== null) {
+                try {
+                    await sendNotification(userToken, "Booking cancelled", `Booking for trip ${from.name} to ${to.name}(${moment(record?.expand?.trip?.tripDate).format('DD/MM/YYYY')}) for ${record.totalSeatsBooked} seats was cancelled`, 3, record.id);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
         }
         const record = await pb.collection('bookings').update(params.id, bookings);
         return res.send({
@@ -169,6 +238,35 @@ router.post('/all', async (req, res) => {
         return res.send({
             success: true,
             result: records
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
+        })
+    }
+
+})
+
+router.get('/getAllReviews', async (req, res) => {
+    try {
+        let typeFilter = "bookingDate < @now && deleted=false";
+
+        let records = await pb.collection('bookings').getFullList({
+            expand: "user", filter: typeFilter
+        });
+
+        let reviews = [];
+        records.forEach(element => {
+            if(element.rating!= 0){
+                reviews.push({user: element.expand.user.name, rating: element.rating, review: element.review});
+            }
+        })
+
+        return res.send({
+            success: true,
+            result: reviews
         })
     } catch (error) {
         logger.error(error);

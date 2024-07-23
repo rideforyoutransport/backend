@@ -325,4 +325,33 @@ router.post('/allChats', async (req, res) => {
 
 })
 
+router.get('/booking/getAllReviews', async (req, res) => {
+    try {
+        let typeFilter = "bookingDate < @now && deleted=false";
+
+        let records = await pb.collection('bookings').getFullList({
+            expand: "user", filter: typeFilter
+        });
+
+        let reviews = [];
+        records.forEach(element => {
+            if(element.rating!= 0){
+                reviews.push({user: element.expand.user.name, rating: element.rating, review: element.review});
+            }
+        })
+
+        return res.send({
+            success: true,
+            result: reviews
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
+        })
+    }
+
+})
+
 module.exports=router;
