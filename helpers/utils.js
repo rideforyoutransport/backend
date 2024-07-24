@@ -191,6 +191,10 @@ const createStripePaymentIntent = async (data)  => {
         automatic_payment_methods: {
           enabled: true,
         },
+        payment_method_types: [
+            "card",
+            "link"
+        ]
         //confirm: true,
         //capture_method: 'automatic'
     });
