@@ -188,9 +188,6 @@ const createStripePaymentIntent = async (data)  => {
         //customer: data.customer,
         description: data.description,
         receipt_email: data.receipt_email,
-        automatic_payment_methods: {
-          enabled: true,
-        },
         payment_method_types: [
             "card",
             "link"
