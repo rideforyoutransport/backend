@@ -1,6 +1,6 @@
 const { default: axios } = require('axios');
 const PocketBase = require('pocketbase/cjs');
-const pb_port = normalizePort(process.env.PB_PORT || 'http://127.0.0.1:8090');
+const pb_port = normalizePort(process.env.PB_PORT || 'http://127.0.0.1:8080');
 const pb = new PocketBase(pb_port);
 const pb_authStore = pb.authStore
 const currentUser = pb.authStore.model;

@@ -16,7 +16,7 @@
   */
 
   
- var server_port = normalizePort(process.env.SERVER_PORT || '3003');
+ var server_port = normalizePort(process.env.SERVER_PORT || '3004');
  app.set('port', server_port);
 const {pb}  = require('../pocketbase/pocketbase.js');
 
