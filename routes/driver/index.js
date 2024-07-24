@@ -2,7 +2,7 @@ const logger = require('../../helpers/logger.js');
 const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 
-const {pb,pb_authStore,currentUser}  = require('../../pocketbase/pocketbase.js');
+const { pb, pb_authStore, currentUser } = require('../../pocketbase/pocketbase.js');
 
 
 
@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
         const adminData = await pb.collection('driver').authWithPassword(req.body.email, req.body.password);
         // console.log(adminData);
 
-        if(adminData.record.verified){
+        if (adminData.record.verified) {
             return res.send({
                 success: true,
                 result: { id: adminData.record.id, token: adminData.token }
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', async (req, res) => {
 
     try {
-        console.log(pb_authStore,"this is the user");
+        console.log(pb_authStore, "this is the user");
         pb.authStore.clear();
         return res.send({
             success: true,
@@ -90,7 +90,7 @@ router.post('/verify', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 })
@@ -107,7 +107,7 @@ router.post('/resetPassword', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 })
@@ -130,7 +130,7 @@ router.patch('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
     // const result = await pb.collection('driver').listAuthMethods();
@@ -139,7 +139,7 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
-        console.log("current user from all users req ",(pb_authStore.baseModel));
+        console.log("current user from all users req ", (pb_authStore.baseModel));
 
         const records = await pb.collection('driver').getList(req.body.from, req.body.to);
 
@@ -151,7 +151,7 @@ router.post('/all', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -173,13 +173,15 @@ router.post('/allTrips', async (req, res) => {
             typeFilter = "tripDate > @now"
         }
         console.log(typeFilter);
-        let trips = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(),
-            filter: typeFilter+"&& driver=\""+`${req.body.id}`+"\""+" && requestedTrip=false && deleted=false" });
+        let trips = await pb.collection('trips').getList(req.body.from, req.body.to, {
+            expand: expandKeyNames.toString(),
+            filter: typeFilter + "&& driver=\"" + `${req.body.id}` + "\"" + " && requestedTrip=false && deleted=false"
+        });
 
         trips = utils.cleanExpandData(trips, expandKeys, true);
-        trips.forEach(e=> {
-            e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-            e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
+        trips.forEach(e => {
+            e["vehicle"] = e["vehicle"] ? e["vehicle"] : null
+            e["returnTrip"] = e["returnTrip"] ? e["returnTrip"] : null
         })
 
         return res.send({
@@ -190,7 +192,7 @@ router.post('/allTrips', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -210,28 +212,30 @@ router.post('/trip/:id', async (req, res) => {
         newRecords.push(records);
         newRecords = utils.cleanExpandData(newRecords, expandKeys, false);
         let trip = newRecords[0];
-        trip["vehicle"] = trip["vehicle"]? trip["vehicle"]: null;
-        trip["returnTrip"] = trip["returnTrip"]? trip["returnTrip"]: null;
-        let expandNames = ["from", "to"];
-        let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, {expand: expandNames.toString(), filter: "trip=\""+`${trip.id}`+"\"" });
+        trip["vehicle"] = trip["vehicle"] ? trip["vehicle"] : null;
+        trip["returnTrip"] = trip["returnTrip"] ? trip["returnTrip"] : null;
+        let expandNames = ["from", "to", "user"];
+        let bookings = await pb.collection('bookings').getList(req.body.from, req.body.to, { expand: expandNames.toString(), filter: "trip=\"" + `${trip.id}` + "\"" });
         let expandKeysBookings = {
             from: ["name", "id", "place_id"],
-            to: ["name", "id", "place_id"]
+            to: ["name", "id", "place_id"],
+            user: ["name", "id", "phoneNumber", "email"]
         };
         bookings = utils.cleanExpandData(bookings, expandKeysBookings, true);
         let keys = ["amountLeft", "amountPaid", "bookingDate", "created", "deleted", "from", "id", "luggageTypeOpted", "otherUsers", "refreshmentsOpted", "status", "tipAmount", "tipPaid", "to", "totalAmount", "totalSeatsBooked", "user", "rating", "review"];
-        bookings.forEach(booking=>{
+        bookings.forEach(booking => {
             let details = booking.otherUsers["details"];
             booking.otherUsers["details"] = JSON.parse(details);
             Object.keys(booking).forEach(key => {
-                if(!keys.includes(key)){
+                if (!keys.includes(key)) {
                     delete booking[key];
                 }
             });
             return booking;
         })
+        console.log(bookings);
         trip.bookings = bookings;
-        
+
         return res.send({
             success: true,
             result: trip
@@ -240,7 +244,7 @@ router.post('/trip/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -259,7 +263,7 @@ router.get('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -268,7 +272,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const params = Object.assign({}, req.params);
-        const records = await pb.collection('driver').update(params.id, {deleted: true});
+        const records = await pb.collection('driver').update(params.id, { deleted: true });
         return res.send({
             success: true,
             result: records
@@ -277,7 +281,7 @@ router.delete('/:id', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -287,26 +291,26 @@ router.post('/allChats', async (req, res) => {
     try {
         // const params = Object.assign({}, req.params);
         console.log(req.body);
-        let filter= `driver="${req.body.driver}"`;
-        console.log("filter",filter);
+        let filter = `driver="${req.body.driver}"`;
+        console.log("filter", filter);
         let expandKeys = req.body.expandKeys;
         let expandKeyNames = [];
         Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        let records = await pb.collection('chats').getFullList({filter: filter, expand: expandKeyNames.toString()});
+        let records = await pb.collection('chats').getFullList({ filter: filter, expand: expandKeyNames.toString() });
         console.log(records);
-        if(records.length > 0){
+        if (records.length > 0) {
             records = utils.cleanExpandData(records, expandKeys, false);
             records.map(record => {
                 let unread = 0;
-                record.messages.map(message=>{
-                    if(!message.seenByDriver){
+                record.messages.map(message => {
+                    if (!message.seenByDriver) {
                         unread++;
                     }
                 })
                 record.unread = unread;
-                if(record.booking == ""){
+                if (record.booking == "") {
                     record.booking = null;
                 }
             })
@@ -319,7 +323,7 @@ router.post('/allChats', async (req, res) => {
         logger.error(error);
         return res.send({
             success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
         })
     }
 
@@ -335,8 +339,8 @@ router.get('/booking/getAllReviews', async (req, res) => {
 
         let reviews = [];
         records.forEach(element => {
-            if(element.rating!= 0){
-                reviews.push({user: element.expand.user.name, rating: element.rating, review: element.review});
+            if (element.rating != 0) {
+                reviews.push({ user: element.expand.user.name, rating: element.rating, review: element.review });
             }
         })
 
@@ -354,4 +358,53 @@ router.get('/booking/getAllReviews', async (req, res) => {
 
 })
 
-module.exports=router;
+router.patch('/cancelBooking/:id', async (req, res) => {
+    try {
+        const params = Object.assign({}, req.params);
+        const records = await pb.collection('bookings').update(params.id, { status: "0" });
+
+        const record = await pb.collection('bookings').getOne(params.id, {
+            expand: 'trip'
+        });
+
+        let driver = await pb.collection('driver').getOne(record?.expand?.trip?.driver);
+        let driverToken = driver.fcmToken;
+
+        let user = await pb.collection('users').getOne(record.user);
+        let userToken = user.fcmToken;
+
+        let from = await pb.collection('stops').getOne(record.from);
+        let to = await pb.collection('stops').getOne(record.to);
+
+
+        if (driverToken !== '' && driverToken !== null) {
+            try {
+                await sendNotification(driverToken, "Booking cancelled", `Booking for trip ${from.name} to ${to.name}(${moment(record?.expand?.trip?.tripDate).format('DD/MM/YYYY')}) for ${record.totalSeatsBooked} seats was cancelled by you.`, 2, record?.expand?.trip?.id);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        if (userToken !== '' && userToken !== null) {
+            try {
+                await sendNotification(userToken, "Booking cancelled", `Booking for trip ${from.name} to ${to.name}(${moment(record?.expand?.trip?.tripDate).format('DD/MM/YYYY')}) for ${record.totalSeatsBooked} seats was cancelled`, 3, record.id);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        return res.send({
+            success: true,
+            message: "Booking cancelled"
+        })
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
+        })
+    }
+
+})
+
+module.exports = router;

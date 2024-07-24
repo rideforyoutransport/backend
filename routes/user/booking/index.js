@@ -76,7 +76,7 @@ router.post('/add', async (req, res) => {
 
             // console.log("chat session call", bookingResp);
 
-            let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${Data.trip}" && user="${bData.user}"`, sort: '-updated', });
+            let chatSession = await pb.collection('chats').getFullList({ filter: `trip="${bData.trip}" && user="${bData.user}"`, sort: '-updated', });
             if (chatSession.length > 0 && chatSession[0].booking == '') {
                 chatSession[0].booking = bookingResp.id;
 
@@ -260,7 +260,7 @@ router.get('/getAllReviews', async (req, res) => {
         let reviews = [];
         records.forEach(element => {
             if(element.rating!= 0){
-                reviews.push({user: element.expand.user.name, rating: element.rating, review: element.review});
+                reviews.push({user: element.expand.user.name, rating: element.rating, review: element.review ? element.review: ""});
             }
         })
 
