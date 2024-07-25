@@ -9,6 +9,7 @@ const currentUser = pb.authStore.model;
 const confirmVerificationPb = async (collection, token, refresh) => {
 
   try {
+
     await pb.collection(collection).confirmVerification(token);
     if (refresh) {
       await pb.collection(collection).authRefresh();
