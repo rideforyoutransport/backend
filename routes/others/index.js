@@ -127,13 +127,15 @@ router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
 
         return res.status(200).send({
             success: true,
-            result: details,
-            record:record
+            message: "Uploaded successfully"
         });
     } catch (error) {
         console.log(error);
         logger.error(error);
-        res.status(400).send({ error });
+        return res.status(200).send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+        });
     }
 });
 
