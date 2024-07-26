@@ -3,9 +3,29 @@ const utils = require('../../helpers/utils.js');
 const router = require('express').Router();
 const path = require('path');
 const fs = require("fs");
+const cron = require('node-cron');
+
 
 const { pb } = require('../../pocketbase/pocketbase.js');
+
 const multer = require('multer');
+const { sendNotif } = require('../../helpers/firebaseFunctions.js');
+
+// send notif function
+const sendNotification = async (token, title, desc, page, id) => {
+    console.log(token,title,desc,page,id)
+
+    try {
+        if (!token || typeof token !== 'string') {
+            throw new Error('Invalid FCM token provided');
+        }
+         let response = await sendNotif(token, title, JSON.stringify({ description: desc, id: id, page: page}));
+        console.log(response);
+        return response;
+    } catch (error) {
+        console.error("Notification API error:", error.message);
+    }
+}
 
 // Configure Multer Storage
 let storage = multer.diskStorage({
@@ -42,6 +62,27 @@ const upload = multer({
         checkFileType(file, cb);
     }
 });
+
+async function getBookings() {
+    try {
+       
+        // Fetch all bookings
+        let expandNames = ["user","from","to"];
+        const bookings = await pb.collection('bookings').getFullList({
+            filter: 'notification = false && bookingDate < @now' ,expand:'user,from,to'
+        });
+        bookings.forEach(booking => {
+   
+            sendNotification(booking.expand.user.fcmToken,'Rate Trip',`Please Rate and Review your last trip from ${booking.expand.from.name} to ${booking.expand.to.name} `,4,booking.id)
+        });
+        console.log(`Notifications sent for ${bookings.length} bookings.`);
+
+        
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+    }
+}
+
 
 // PATCH /upload Endpoint
 router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
@@ -97,5 +138,10 @@ router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
         });
     }
 });
+
+cron.schedule(`0 */12 * * *`, async () => { //runs every 10 mins 
+    getBookings();
+  });
+
 
 module.exports = router;
