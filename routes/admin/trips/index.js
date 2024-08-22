@@ -121,7 +121,7 @@ const createOrUpdatetripData = async (tData, returnTrip) => {
     tripData.driver = tData.driver;
     tripData.luggage = tData.luggage;
     tripData.stopsDetailed = stopsDetailed
-    tripData.bookingMinimumAmount = 25;
+    tripData.bookingMinimumAmount = 1;
     tripData.refreshments = tData.refreshments ? tData.refreshments : false;
     tripData.recurring = tData.recurring;
     tripData.promoCodes = tData.promoCodes;
