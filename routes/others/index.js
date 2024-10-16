@@ -153,7 +153,7 @@ router.get(
         fallback: 'https://www.rideforyoutransport.com',
         android_package_name: 'com.rideforyoutransport.rideforyou',
         ios_store_link:
-            'https://apps.apple.com/in/app/rideforyou-transport/id6505006863'
+            'com.rideforyoutransport.rideforyou'
     })
 );
 
