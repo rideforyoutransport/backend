@@ -4,6 +4,8 @@ const router = require('express').Router();
 const path = require('path');
 const fs = require("fs");
 const cron = require('node-cron');
+var deeplink = require('node-deeplink');
+
 
 
 const { pb } = require('../../pocketbase/pocketbase.js');
@@ -13,13 +15,13 @@ const { sendNotif } = require('../../helpers/firebaseFunctions.js');
 
 // send notif function
 const sendNotification = async (token, title, desc, page, id) => {
-    console.log(token,title,desc,page,id)
+    console.log(token, title, desc, page, id)
 
     try {
         if (!token || typeof token !== 'string') {
             throw new Error('Invalid FCM token provided');
         }
-         let response = await sendNotif(token, title, JSON.stringify({ description: desc, id: id, page: page}));
+        let response = await sendNotif(token, title, JSON.stringify({ description: desc, id: id, page: page }));
         console.log(response);
         return response;
     } catch (error) {
@@ -65,19 +67,19 @@ const upload = multer({
 
 async function getBookings() {
     try {
-       
+
         // Fetch all bookings
-        let expandNames = ["user","from","to"];
+        let expandNames = ["user", "from", "to"];
         const bookings = await pb.collection('bookings').getFullList({
-            filter: 'notification = false && bookingDate < @now' ,expand:'user,from,to'
+            filter: 'notification = false && bookingDate < @now', expand: 'user,from,to'
         });
         bookings.forEach(booking => {
-   
-            sendNotification(booking.expand.user.fcmToken,'Rate Trip',`Please Rate and Review your last trip from ${booking.expand.from.name} to ${booking.expand.to.name} `,4,booking.id)
+
+            sendNotification(booking.expand.user.fcmToken, 'Rate Trip', `Please Rate and Review your last trip from ${booking.expand.from.name} to ${booking.expand.to.name} `, 4, booking.id)
         });
         console.log(`Notifications sent for ${bookings.length} bookings.`);
 
-        
+
     } catch (error) {
         console.error('Error fetching bookings:', error);
     }
@@ -90,7 +92,7 @@ router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
     const params = Object.assign({}, req.params);
 
     const file = req.file;
-    console.log('File:', file,params); // Debug statement
+    console.log('File:', file, params); // Debug statement
 
     if (!file) {
         console.log('No file uploaded or invalid file type'); // Debug statement
@@ -104,30 +106,32 @@ router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
     };
 
     try {
-      const formData = new FormData();
+        const formData = new FormData();
 
-      formData.append(
-        "avatar",
-        new Blob([fs.readFileSync(file.path)]),
-        file.filename
-      );
-      
-      const record = await pb.collection(`${req.params.obj}`).update(params.id, formData);
-      // const createdRecord = await pb.collection("images").create(formData);
-      
-      //Delete the image from localstore after s3 upload 
-      fs.unlink(file.path, (err) => {
-        if (err) {
-          console.error(`Error removing file: ${err}`);
-          return;
-        }
-      
-        console.log(`File ${file.path} has been successfully removed.`);
-      });
+        formData.append(
+            "avatar",
+            new Blob([fs.readFileSync(file.path)]),
+            file.filename
+        );
+
+        const record = await pb.collection(`${req.params.obj}`).update(params.id, formData);
+        // const createdRecord = await pb.collection("images").create(formData);
+
+        //Delete the image from localstore after s3 upload 
+        fs.unlink(file.path, (err) => {
+            if (err) {
+                console.error(`Error removing file: ${err}`);
+                return;
+            }
+
+            console.log(`File ${file.path} has been successfully removed.`);
+        });
 
         return res.status(200).send({
             success: true,
-            message: "Uploaded successfully"
+            message: "Uploaded successfully",
+            result: details,
+            record: record
         });
     } catch (error) {
         console.log(error);
@@ -141,7 +145,16 @@ router.patch('/upload/:obj/:id', upload.single('file'), async (req, res) => {
 
 cron.schedule(`0 */12 * * *`, async () => { //runs every 10 mins 
     getBookings();
-  });
+});
 
+router.get(
+    '/share',
+    deeplink({
+        fallback: 'https://www.rideforyoutransport.com',
+        android_package_name: 'com.rideforyoutransport.rideforyou',
+        ios_store_link:
+            'https://apps.apple.com/in/app/rideforyou-transport/id6505006863'
+    })
+);
 
 module.exports = router;
