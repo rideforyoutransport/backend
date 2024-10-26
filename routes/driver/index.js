@@ -166,16 +166,23 @@ router.post('/allTrips', async (req, res) => {
             expandKeyNames.push(key);
         })
         let typeFilter = '';
+        let tripSortFilter='';
 
         if (req.body.type == 0) {
             typeFilter = "tripDate < @now"
+            tripSortFilter="-tripDate"
         } else if (req.body.type == 1) {
-            typeFilter = "tripDate > @now"
+            typeFilter = "tripDate > @now",
+            tripSortFilter="tripDate"
+
+        } else {
+            typeFilter = "tripDate = @now"
         }
         console.log(typeFilter);
         let trips = await pb.collection('trips').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(),
-            filter: typeFilter + "&& driver=\"" + `${req.body.id}` + "\"" + " && requestedTrip=false && deleted=false"
+            filter: typeFilter + "&& driver=\"" + `${req.body.id}` + "\"" + " && requestedTrip=false && deleted=false",
+            sort: tripSortFilter
         });
 
         trips = utils.cleanExpandData(trips, expandKeys, true);
