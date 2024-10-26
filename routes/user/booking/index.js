@@ -213,18 +213,26 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         let typeFilter = '';
-
+        let tripSortFilter='';
         if (req.body.type == 0) {
-            typeFilter = "bookingDate < @now"
+            typeFilter = "bookingDate < @now",
+            tripSortFilter="-bookingDate"
+
         } else if (req.body.type == 1) {
             typeFilter = "bookingDate > @now"
+            tripSortFilter="bookingDate"
         }
+         else {
+            typeFilter = "bookingDate = @now"
+        }
+
         typeFilter = typeFilter + ` && user="${id}"`;
         console.log(typeFilter);
 
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                typeFilter + '&& deleted=false'
+                typeFilter + '&& deleted=false',
+                sort: tripSortFilter
         });
         records = utils.cleanExpandData(records, expandKeys, true);
 
