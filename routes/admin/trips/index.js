@@ -430,9 +430,9 @@ router.delete('/:id', async (req, res) => {
 router.post('/deleteMultiple', async (req, res) => {
     try {
         let idArr = req.body.ids;
-        idArr.map(async (id) => {
-            await pb.collection('trips').update(id, { deleted: true });
-        })
+        await Promise.all(
+            idArr.map(id => pb.collection('trips').update(id, { deleted: true }))
+        );
         return res.send({
             success: true,
             result: { message: "Deleted successfully!" }
