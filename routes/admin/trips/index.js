@@ -261,7 +261,8 @@ router.post('/all', async (req, res) => {
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
             expand: expandKeyNames.toString(), filter:
-                'totalSeatsLeft>0 && requestedTrip=false && deleted=false'
+                'totalSeatsLeft>0 && requestedTrip=false && deleted=false',
+                sort: '-created'
         });
         console.log(records);
         records = utils.cleanExpandData(records, expandKeys, true);
@@ -301,7 +302,8 @@ router.post('/all', async (req, res) => {
 router.post('/requestedTrips', async (req, res) => {
     try {
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
-            filter: 'requestedTrip=true && deleted=false'
+            filter: 'requestedTrip=true && deleted=false',
+            sort: '-created'
         });
         console.log(records);
         return res.send({
