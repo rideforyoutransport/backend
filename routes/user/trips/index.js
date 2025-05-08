@@ -54,7 +54,7 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         let records = await pb.collection('trips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'tripDate > @now && totalSeatsLeft>0 && deleted=false' });
+            'tripDate > @now && totalSeatsLeft>0 && deleted=false', sort: 'tripDate' });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(e=> {
             e["vehicle"] = e["vehicle"]? e["vehicle"]: null
