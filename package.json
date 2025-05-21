@@ -36,6 +36,7 @@
     "node-cron": "^3.0.3",
     "node-deeplink": "^0.6.0",
     "node.date-time": "^1.2.2",
+    "nodemailer": "^7.0.3",
     "nodemon": "^3.1.0",
     "pocketbase": "^0.21.1",
     "socket.io": "^4.7.5",
