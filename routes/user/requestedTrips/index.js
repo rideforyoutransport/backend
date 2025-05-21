@@ -81,11 +81,12 @@ router.post('/add', async (req, res) => {
         const html  = generateRequestedTripEmail(trip);
         await utils.transporter.sendMail({
             from: process.env.SMTP_USER,
-            to: email,
+            to: process.env.SMTP_USER,
             subject: "NEW TRIP REQUESTED",
             html
           })
 
+        const record = await pb.collection('requestedTrips').create(trip);
         return res.send({
             success: true,
             message: "Request Added!"
