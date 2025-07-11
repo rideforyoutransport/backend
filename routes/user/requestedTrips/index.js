@@ -1,6 +1,7 @@
 const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
+const generateRequestedTripEmail = require('../../../helpers/requestedTrip.js');
 
 const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
 
@@ -67,6 +68,14 @@ router.post('/add', async (req, res) => {
     let trip = await createOrUpdatetripData(req.body);
     try {
         const record = await pb.collection('requestedTrips').create(trip);
+
+        const html  = generateRequestedTripEmail(trip);
+        await utils.transporter.sendMail({
+            from: process.env.SMTP_USER,
+            to: email,
+            subject: "NEW TRIP REQUESTED",
+            html
+          })
 
         return res.send({
             success: true,

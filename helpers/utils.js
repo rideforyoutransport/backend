@@ -1,6 +1,7 @@
 var axios = require("axios");
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_BASE_URL } = process.env;
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const nodemailer = require("nodemailer")
 
 const EPOCH_24H= 86400;
 
@@ -231,6 +232,15 @@ const refund = await stripe.refunds.create({
 return refund;
 }
 
+// nodemailer setup
+const transporter = nodemailer.createTransport({
+    service: "Gmail", // or SMTP server
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  })
+  
 
 module.exports = {
 
@@ -250,6 +260,7 @@ module.exports = {
     // createOrderPayPal,
     // captureOrderPayPal,
     initiateRefund,
-    EPOCH_24H
+    EPOCH_24H,
+    transporter
 
 }
