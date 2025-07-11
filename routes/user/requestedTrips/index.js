@@ -2,6 +2,7 @@ const logger = require('../../../helpers/logger.js');
 const utils = require('../../../helpers/utils.js');
 const router = require('express').Router();
 const generateRequestedTripEmail = require('../../../helpers/requestedTrip.js');
+const generateRequestedTripEmail = require('../../../helpers/requestedTrip.js');
 
 const {pb,pb_authStore}  = require('../../../pocketbase/pocketbase.js');
 
