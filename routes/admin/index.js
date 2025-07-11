@@ -44,6 +44,56 @@ router.post('/resetPassword', async (req, res) => {
     }
 })
 
+router.post('/changepassword/:id', async (req, res) => {
+    try {
+
+        const { oldPassword, newPassword, newPasswordConfirm } = req.body;
+
+        // Validate input
+        if (!oldPassword || !newPassword || !newPasswordConfirm) {
+            return res.send({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        if (newPassword !== newPasswordConfirm) {
+            return res.send({
+                success: false,
+                message: "New passwords do not match"
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.send({
+                success: false,
+                message: "Password must be at least 8 characters long"
+            });
+        }
+
+        // Get the authenticated user's ID (assuming you have auth middleware)
+        const userId = req.params.id;
+
+        await pb.collection('admin').update(userId, {
+            oldPassword: oldPassword,
+            password: newPassword,
+            passwordConfirm: newPasswordConfirm
+        });
+
+        return res.send({
+            success: true,
+            message: "Password changed successfully"
+        });
+
+    } catch (error) {
+        logger.error(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+        })
+    }
+})
+
 
 
 router.use('/vendor', require('./vendor'));
