@@ -264,33 +264,18 @@ router.post('/all', async (req, res) => {
                 'totalSeatsLeft>0 && requestedTrip=false && deleted=false'
         });
         console.log(records);
+        let total = records.totalItems;
+        let page = records.page;
+        let totalPages = records.totalPages;
+        let perPage = records.perPage;
         records = utils.cleanExpandData(records, expandKeys, true);
-        for(let i = 0; i<records.length; i++){
-            let trip = records[i];
-            trip["vehicle"] = trip["vehicle"] ? trip["vehicle"] : null
-            console.log(trip.returnTrip);
-            if(trip.returnTrip && trip.returnTrip!= ''){
-                let returnRecords = await pb.collection('trips').getOne(trip.returnTrip, { expand: expandKeyNames.toString() });
-                console.log(returnRecords);
-                let newReturnRecords = [];
-                newReturnRecords.push(returnRecords);
-                newReturnRecords = utils.cleanExpandData(newReturnRecords, expandKeys, false);
-                newReturnRecords.forEach(e=> {
-                    e["vehicle"] = e["vehicle"]? e["vehicle"]: null
-                    e["returnTrip"] = e["returnTrip"]? e["returnTrip"]: null
-                })
-                trip.returnTrip = newReturnRecords[0];
-            } else {
-                trip.returnTrip = null;
-            }
-        }
-        
         return res.send({
             success: true,
-            result: records
+            result: {items: records, total, totalPages, page, perPage}
         })
     } catch (error) {
         logger.error(error);
+        console.log(error);
         return res.send({
             success: false,
             message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
