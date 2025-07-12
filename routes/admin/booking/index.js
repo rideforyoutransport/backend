@@ -140,16 +140,8 @@ router.post('/all', async (req, res) => {
         Object.keys(expandKeys).forEach(key => {
             expandKeyNames.push(key);
         })
-        // let typeFilter = '';
-
-        // if (req.body.type == 0) {
-        //     typeFilter = "bookingDate < @now"
-        // } else if (req.body.type == 1) {
-        //     typeFilter = "bookingDate > @now"
-        // }
-        // console.log(typeFilter);
         let records = await pb.collection('bookings').getList(req.body.from, req.body.to, {
-            expand: expandKeyNames.toString(), filter: 'deleted=false'
+            expand: expandKeyNames.toString(), filter: 'deleted=false', sort: '-created'
         });
         records = utils.cleanExpandData(records, expandKeys, true);
         records.forEach(element=>{
@@ -171,6 +163,64 @@ router.post('/all', async (req, res) => {
     }
 
 })
+
+router.post('/all/byTrip', async (req, res) => {
+    try {
+        const { tripId, from = 0, to = 50, expandKeys = {} } = req.body;
+        
+        // Validate tripId
+        if (!tripId) {
+            return res.send({
+                success: false,
+                message: "Trip ID is required"
+            });
+        }
+
+        // Build expand key names
+        let expandKeyNames = [];
+        Object.keys(expandKeys).forEach(key => {
+            expandKeyNames.push(key);
+        });
+
+        // Calculate pagination
+        const limit = to - from;
+        const page = Math.floor(from / limit) + 1;
+
+        // Fetch bookings for specific trip
+        let records = await pb.collection('bookings').getList(page, limit, {
+            expand: expandKeyNames.toString(),
+            filter: `deleted=false && trip="${tripId}"`, // Filter by trip ID
+            sort: '-created'
+        });
+
+        // Clean expand data using your existing utility
+        records = utils.cleanExpandData(records, expandKeys, true);
+        
+        // Process otherUsers details (same as your existing logic)
+        records.forEach(element => {
+            if (element.otherUsers && element.otherUsers["details"]) {
+                let details = element.otherUsers["details"];
+                element.otherUsers["details"] = JSON.parse(details);
+            }
+            return element;
+        });
+
+        return res.send({
+            success: true,
+            result: records,
+            total: records.length, // You might want to get actual total from PocketBase
+            tripId: tripId
+        });
+
+    } catch (error) {
+        logger.error(error);
+        console.log(error);
+        return res.send({
+            success: false,
+            message: error.response && error.response.message ? error.response.message : "Something went wrong! Please try again later!"
+        });
+    }
+});
 
 router.post('/details/:id', async (req, res) => {
     try {
