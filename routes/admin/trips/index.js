@@ -253,35 +253,56 @@ router.patch('/:id', async (req, res) => {
 })
 
 router.post('/all', async (req, res) => {
-    try {
-        let expandKeys = req.body.expandKeys;
-        let expandKeyNames = [];
-        Object.keys(expandKeys).forEach(key => {
-            expandKeyNames.push(key);
-        })
-        let records = await pb.collection('trips').getList(req.body.from, req.body.to, {
-            expand: expandKeyNames.toString(), filter:
-                'totalSeatsLeft>0 && requestedTrip=false && deleted=false'
-        });
-        console.log(records);
-        let total = records.totalItems;
-        let page = records.page;
-        let totalPages = records.totalPages;
-        let perPage = records.perPage;
-        records = utils.cleanExpandData(records, expandKeys, true);
-        return res.send({
-            success: true,
-            result: {items: records, total, totalPages, page, perPage}
-        })
-    } catch (error) {
-        logger.error(error);
-        console.log(error);
-        return res.send({
-            success: false,
-            message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
-        })
-    }
-})
+  try {
+    let expandKeys = req.body.expandKeys;
+    let expandKeyNames = [];
+    Object.keys(expandKeys).forEach(key => {
+      expandKeyNames.push(key);
+    });
+
+    // Convert from/to to page/perPage format for PocketBase
+    const from = req.body.from;
+    const to = req.body.to;
+    const perPage = to - from;              // 20, 40, etc.
+    const page = Math.floor(from / perPage) + 1;  // 1, 2, 3, etc.
+
+    console.log(`🔍 Backend conversion: from=${from}, to=${to} → page=${page}, perPage=${perPage}`);
+
+    // Use correct PocketBase pagination
+    let records = await pb.collection('trips').getList(page, perPage, {
+      expand: expandKeyNames.toString(), 
+      filter: 'totalSeatsLeft>0 && requestedTrip=false && deleted=false',
+      sort: '-created'
+    });
+
+    console.log('📄 PocketBase response:', records);
+    
+    let total = records.totalItems;
+    let totalPages = records.totalPages;
+    let resultPage = records.page;
+    let resultPerPage = records.perPage;
+    
+    records = utils.cleanExpandData(records, expandKeys, true);
+    
+    return res.send({
+      success: true,
+      result: {
+        items: records, 
+        total, 
+        totalPages, 
+        page: resultPage, 
+        perPage: resultPerPage
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    console.log(error);
+    return res.send({
+      success: false,
+      message: error.response && error.response.message ? error.response.message: "Something went wrong! Please try again later!"
+    });
+  }
+});
 
 router.post('/requestedTrips', async (req, res) => {
     try {
