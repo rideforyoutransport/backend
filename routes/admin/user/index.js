@@ -92,7 +92,7 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/all', async (req, res) => {
     try {
-        const records = await pb.collection('users').getList(req.body.from, req.body.to, {filter: 'deleted=false'});
+        const records = await pb.collection('users').getList(req.body.from, req.body.to, {filter: 'deleted=false',  sort: '-created'});
         return res.send({
             success: true,
             result: records
