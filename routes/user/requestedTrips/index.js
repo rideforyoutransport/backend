@@ -77,7 +77,6 @@ router.post('/add', async (req, res) => {
           })
 
         const record = await pb.collection('requestedTrips').create(trip);
-        
         return res.send({
             success: true,
             message: "Request Added!"
