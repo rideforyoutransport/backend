@@ -12,8 +12,10 @@ router.post('/all', async (req, res) => {
             expandKeyNames.push(key);
         })
         console.log(expandKeys);
-        let records = await pb.collection('requestedTrips').getList(req.body.from, req.body.to, { expand: expandKeyNames.toString(), filter:
-            'deleted=false' });
+        let from = req.body.from? req.body.from: 0;
+        let to = req.body.to? req.body.to: 100
+        let records = await pb.collection('requestedTrips').getList(from, to, { expand: expandKeyNames.toString(), filter:
+            'deleted=false', sort: '-created' });
         records = utils.cleanExpandData(records, expandKeys, true);
         
         console.log(records);
